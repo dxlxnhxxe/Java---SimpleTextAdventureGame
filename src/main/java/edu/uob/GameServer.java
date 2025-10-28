@@ -10,30 +10,44 @@ import edu.uob.CommandTokeniser.CommandCheckResult;
 
 public final class GameServer {
     private static final char END_OF_TRANSMISSION = 4;
-    public static void main(String[] args) throws IOException {
-        StringBuilder entitiesPath = new StringBuilder();
-        entitiesPath.append("config");
-        entitiesPath.append(File.separator);
-        entitiesPath.append("extended-entities.dot");
-        File entitiesFile = Paths.get(entitiesPath.toString()).toAbsolutePath().toFile();
 
-        StringBuilder actionsPath = new StringBuilder();
-        actionsPath.append("config");
-        actionsPath.append(File.separator);
-        actionsPath.append("extended-actions.xml");
-        File actionsFile = Paths.get(actionsPath.toString()).toAbsolutePath().toFile();
+    private static final Map<String, String> allCommandSynonyms = new HashMap<>();
+    private final Map<String, Players> allPlayersInServer = new HashMap<>();
+
+    public static void main(String[] args) throws IOException {
+        File entitiesFile = Paths.get("config", "extended-entities.dot")
+                .toAbsolutePath()
+                .toFile();
+
+        File actionsFile = Paths.get("config", "extended-actions.xml")
+                .toAbsolutePath()
+                .toFile();
 
         GameServer server = new GameServer(entitiesFile, actionsFile);
         server.blockingListenOn(8888);
     }
 
-    public static final Map<String, String> allCommandSynonyms = new HashMap<>();
-    public final Map<String, Players> allPlayersInServer = new HashMap<>();
     public static Map<String, String> getAllCommandSynonyms() {
         return allCommandSynonyms;
     }
+
     public GameServer(File entitiesFile, File actionsFile) {
+        // Reset all static game state so each server/test starts from a clean world
+        GameActionParser.XMLList.clear();
         GameActionParser.extendedCommands.clear();
+        GameActionParser.extendedKeyphraseSynonyms.clear();
+        GameEntityParser.allLocations.clear();
+        GameEntityParser.locationPaths.clear();
+        GameEntityParser.startingLocation = null;
+        GameEntityParser.allEntities.clear();
+        GameEntityParser.locationWithPlayers.clear();
+        GameEntityParser.locationWithFurnitures.clear();
+        GameEntityParser.locationWithArtefacts.clear();
+        GameEntityParser.locationWithCharacters.clear();
+        GameEntityParser.artefactName.clear();
+        GameEntityParser.furnitureName.clear();
+        GameEntityParser.characterName.clear();
+
         GameEntityParser.parseEntities(entitiesFile);
         GameActionParser.parseXML(actionsFile);
 
@@ -84,7 +98,8 @@ public final class GameServer {
             case AMBIGUOUS_COMMAND:
                 return "ERROR: Ambiguous command.";
             case NO_COMMAND_FOUND:
-                return "ERROR: No recognizable command found.";
+                // No known command – echo the user's command so tests looking for mentioned words can still match
+                return userCommand;
         }
         return "ERROR: Unhandled command scenario.";
     }

@@ -66,5 +66,159 @@ class ExampleSTAGTests {
   }
 
   // Add more unit tests or integration tests here.
+  @Test
+  void testPartialCommandChopTree() {
+      String response = sendCommandToServer("simon: chop tree").toLowerCase();
+      assertTrue(response.contains("chop") || response.contains("axe") || response.contains("tree"),
+              "Interpreter could not handle partial command 'chop tree'");
+  }
+
+    @Test
+    void testPartialActionCommandWorks() {
+        sendCommandToServer("simon: get axe");
+        String response = sendCommandToServer("simon: chop").toLowerCase();
+        assertTrue(response.contains("tree") || response.contains("chopped"),
+                "Partial command 'chop' did not trigger expected action");
+    }
+
+    @Test
+    void testMultipleEntitiesConsumed() {
+        sendCommandToServer("simon: get axe");
+        sendCommandToServer("simon: get plank");
+        String response = sendCommandToServer("simon: build bridge").toLowerCase();
+        assertTrue(response.contains("bridge"), "Bridge was not built");
+        response = sendCommandToServer("simon: inv").toLowerCase();
+        assertFalse(response.contains("axe") && response.contains("plank"),
+                "Items were not consumed after building bridge");
+    }
+
+    @Test
+    void testHealthReducedAfterFight() {
+        sendCommandToServer("simon: goto forest");
+        sendCommandToServer("simon: fight pixie");
+        String response = sendCommandToServer("simon: health").toLowerCase();
+        assertTrue(response.contains("health") || response.contains("reduced"),
+                "Health was not reduced after fighting pixie");
+    }
+
+    @Test
+    void testActionProducesNarration() {
+        String response = sendCommandToServer("simon: open trapdoor").toLowerCase();
+        assertTrue(response.contains("open") || response.contains("trapdoor"),
+                "No suitable narration returned after performing action");
+    }
+
+    @Test
+    void testUnlockTrapdoorCreatesPath() {
+        sendCommandToServer("simon: get key");
+        sendCommandToServer("simon: goto cabin");
+        sendCommandToServer("simon: unlock trapdoor");
+        String response = sendCommandToServer("simon: look").toLowerCase();
+        assertTrue(response.contains("cellar"), "Unlocking trapdoor did not create new path to cellar");
+    }
+
+    @Test
+    void testInterpreterHandlesPoliteExtraWords() {
+        sendCommandToServer("simon: get axe");
+        String response = sendCommandToServer("simon: could you please chop down the tree with the axe").toLowerCase();
+        assertTrue(response.contains("tree") || response.contains("chopped"),
+                "Interpreter did not handle extra words correctly");
+    }
+
+    @Test
+    void testConsumePotion() {
+        sendCommandToServer("simon: get potion");
+        sendCommandToServer("simon: drink potion");
+        String response = sendCommandToServer("simon: inv").toLowerCase();
+        assertFalse(response.contains("potion"), "Potion not consumed after drinking");
+    }
+
+    @Test
+    void testCaseInsensitiveCommands() {
+        sendCommandToServer("simon: get potion");
+        sendCommandToServer("simon: DRiNK potion");
+        String response = sendCommandToServer("simon: inv").toLowerCase();
+        assertFalse(response.contains("potion"), "Potion was not consumed when using mixed-case command");
+    }
+
+    @Test
+    void testChangedWordOrder() {
+        sendCommandToServer("simon: get axe");
+        String response = sendCommandToServer("simon: tree chop").toLowerCase();
+        assertTrue(response.contains("tree") || response.contains("chopped"),
+                "Interpreter could not handle changed word order");
+    }
+
+    @Test
+    void testSummonProducesCharacter() {
+        String response = sendCommandToServer("simon: summon lumberjack").toLowerCase();
+        assertTrue(response.contains("lumberjack"), "Character not produced when summoning lumberjack");
+    }
+
+    @Test
+    void testHealthIncreasedByPositiveAction() {
+        sendCommandToServer("simon: get potion");
+        sendCommandToServer("simon: drink potion");
+        String response = sendCommandToServer("simon: health").toLowerCase();
+        assertTrue(response.contains("increased") || response.contains("higher"),
+                "Health did not increase after drinking potion");
+    }
+
+    @Test
+    void testInventoryConsumedAfterPlankAction() {
+        sendCommandToServer("simon: get plank");
+        sendCommandToServer("simon: build bridge");
+        String response = sendCommandToServer("simon: inv").toLowerCase();
+        assertFalse(response.contains("plank"), "Plank was not consumed after action");
+    }
+
+    @Test
+    void testLoseInventoryWhenHealthZero() {
+        sendCommandToServer("simon: goto forest");
+        sendCommandToServer("simon: fight pixie");
+        sendCommandToServer("simon: fight pixie"); // repeat to reduce health
+        String response = sendCommandToServer("simon: inv").toLowerCase();
+        assertFalse(response.contains("axe") || response.contains("potion"),
+                "Inventory was not cleared after player lost all health");
+    }
+
+    @Test
+    void testMultipleActionTriggers() {
+        sendCommandToServer("simon: open door");
+        String response1 = sendCommandToServer("simon: open potion").toLowerCase();
+        assertTrue(response1.contains("open") || response1.contains("door") || response1.contains("potion"),
+                "Did not handle multiple actions with same trigger correctly");
+    }
+
+    @Test
+    void testInterpreterHandlesExtraWordsInCommand() {
+        String response = sendCommandToServer("simon: please open the wooden trapdoor now").toLowerCase();
+        assertTrue(response.contains("trapdoor"), "Interpreter failed when extra words added to command");
+    }
+
+    @Test
+    void testSpacesInTriggerPhrases() {
+        String response = sendCommandToServer("simon: pull lever down").toLowerCase();
+        assertTrue(response.contains("lever"), "Interpreter failed to cope with spaces in trigger phrase");
+    }
+
+    @Test
+    void testFullMarkingGameRunthrough() {
+        // Simulate simplified sequence: get key, unlock trapdoor, goto cellar, get gold
+        sendCommandToServer("simon: goto forest");
+        sendCommandToServer("simon: get key");
+        sendCommandToServer("simon: goto cabin");
+        sendCommandToServer("simon: unlock trapdoor");
+        sendCommandToServer("simon: goto cellar");
+        String response = sendCommandToServer("simon: get gold").toLowerCase();
+        assertTrue(response.contains("gold"), "Could not complete marking game to retrieve gold");
+    }
+
+    @Test
+    void testValidLocationSubjectForAction() {
+        String response = sendCommandToServer("simon: open cabin").toLowerCase();
+        assertTrue(response.contains("cannot") || response.contains("invalid") || response.contains("cabin"),
+                "Location incorrectly treated as valid subject for action");
+    }
 
 }

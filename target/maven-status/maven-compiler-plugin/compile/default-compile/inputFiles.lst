@@ -1,14 +1,14 @@
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/Artefacts.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/Characters.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/GameServer.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/GameEntityParser.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/GameEntity.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/GameClient.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/GameActionNode.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/Locations.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/Players.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/Furnitures.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/CommandTokeniser.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/ExecuteBasicCommands.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/GameActionParser.java
-/Users/dylanhaye/Coding/UoB/JOOPc/straged for future submission/resources/cw-stag OFFICIAL to submit/src/main/java/edu/uob/ExecuteExtendedCommands.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Locations.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameActionNode.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/CommandTokeniser.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Artefacts.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameActionParser.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Players.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameClient.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Furnitures.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Characters.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameEntity.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameEntityParser.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameServer.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/ExecuteExtendedCommands.java
+/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/ExecuteBasicCommands.java

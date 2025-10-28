@@ -120,29 +120,9 @@ public class CommandTokeniser{
                 //If the keyphrase was found, look for matching extended actions in the parsed XML list
                 for (GameActionNode action : GameActionParser.XMLList) {
                     if (action.getKeyphrases().contains(keyphrase)) {
-                        //Extract tokens present in the input that match known game entities
-                        Set<String> inputEntities = new HashSet<>();
-                        for (String token : tokens) {
-                            if (GameEntityParser.allEntities.containsKey(token)) {
-                                inputEntities.add(token);
-                            }
-                        }
-                        //Convert expected subjects from the action to lowercase
-                        Set<String> expectedSubjects = new HashSet<>();
-                        for (String subject : action.getSubjects()) {
-                            expectedSubjects.add(subject.toLowerCase());
-                        }
-                        //Skip this action if the input contains entities not required by the action
-                        if (!expectedSubjects.containsAll(inputEntities)) {
-                            continue;
-                        }
-                        //Check if there's at least one matching subject between the input and the actions expected subjects
-                        boolean partialSubjectMatch = !Collections.disjoint(inputEntities, expectedSubjects);
-
-                        //Confirm the action matches the full keyphrase, has at least one subject,
-                        // and the player has the required entities to perform the action
-                        if (partialSubjectMatch && action.matchesKeyphrase(fullInput) &&
-                                ExecuteExtendedCommands.consumedEntitiesExist(action, currentPlayer)) {
+                        //Confirm the action matches the full keyphrase; allow extra words and defer
+                        //subject/consumption checks to the executor so we can return helpful messages
+                        if (action.matchesKeyphrase(fullInput)) {
                             foundValidExtended.add(keyphrase);
                             //Stop searching after a valid match has been found
                             break;

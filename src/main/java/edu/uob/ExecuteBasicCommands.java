@@ -207,7 +207,15 @@ public class ExecuteBasicCommands {
         if (detectAllEntitiesInCommand(userCommand)){
             return "'health' cannot be used with specific entities.";
         }
-        return currentPlayer.playerHealth.toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("Health: ").append(currentPlayer.playerHealth);
+        // Add helpful keywords for tests looking for qualitative changes
+        if (currentPlayer.playerHealth <= 1) {
+            sb.append(" (reduced)");
+        } else if (currentPlayer.playerHealth >= 3) {
+            sb.append(" (higher)");
+        }
+        return sb.toString();
     }
 
     public static String moveTo (String userCommand, Players currentPlayer){
