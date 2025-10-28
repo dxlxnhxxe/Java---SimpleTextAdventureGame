@@ -1,4 +1,4 @@
-# 🌲 Simple Text Adventure Game (STAG)
+# 🧙‍♂️ Simple Text Adventure Game (STAG)
 
 A minimalist, server–client **text adventure** built in Java for the University of Bristol’s *Object-Oriented Programming with Java* module.  
 
@@ -152,7 +152,7 @@ target/surefire-reports/
 ⸻
 
 ✨ Notes
-	•	Each game session is interactive and shared between all connected clients.
+	•	Each game session is interactive and shared between all connected local clients.
 	•	The modular design allows you to build your own worlds and define new actions.
 	•	The engine is deliberately lightweight — designed to be extended, tested, and explored.
 
