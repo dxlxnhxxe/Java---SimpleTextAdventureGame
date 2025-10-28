@@ -66,7 +66,7 @@ user:> drink potion
 You drink the potion and your health improves.
 ```
 
-⸻
+
 
 ## World Overview
 
