@@ -14,7 +14,7 @@ From the project root directory, run:
 ./mvnw clean compile exec:java@server
 ```
 
-2️⃣ Launch a Game Client
+### 2️⃣ Launch a Game Client
 
 In a separate terminal, start a player session by providing a username:
 
@@ -26,7 +26,7 @@ Each connected client represents a live player in the same persistent world.
 
 ⸻
 
-##🎮 Gameplay
+## 🎮 Gameplay
 
 The world is defined using a .dot file (locations, paths, and entities) and an actions.xml file (verbs, interactions, and effects).
 Players type natural-language commands to explore, collect, craft, and act.
@@ -68,7 +68,7 @@ You drink the potion and your health improves.
 
 ⸻
 
-##🗺️ World Overview
+## 🗺️ World Overview
 
 The game world consists of several interconnected locations, each containing artefacts, furniture, or characters.
 
@@ -105,7 +105,7 @@ This design makes the game world fully extensible — new locations, entities, a
 
 ⸻
 
-##🏆 Objective
+## 🏆 Objective
 
 Your mission is simple (but not easy):
 
@@ -139,7 +139,7 @@ src/
 
 ⸻
 
-##🧪 Running Tests
+## 🧪 Running Tests
 
 To verify functionality:
 ```bash
@@ -152,7 +152,7 @@ target/surefire-reports/
 
 ⸻
 
-##✨ Notes
+## ✨ Notes
 
 	•	Each game session is interactive and shared between all connected local clients.
 	•	The modular design allows you to build your own worlds and define new actions.
