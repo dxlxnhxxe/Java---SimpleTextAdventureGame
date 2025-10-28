@@ -45,7 +45,7 @@ health	—	Check your current health status.
 ⸻
 
 💬 Example Session
-```bash
+```
 user:> look
 You are in cabin - A log cabin in the woods.
 
@@ -60,7 +60,7 @@ You can see furniture:
 You can access from here:
   forest
 ```
-```bash
+```
 user:> get potion
 user:> drink potion
 You drink the potion and your health improves.
@@ -152,6 +152,7 @@ target/surefire-reports/
 ⸻
 
 ✨ Notes
+
 	•	Each game session is interactive and shared between all connected local clients.
 	•	The modular design allows you to build your own worlds and define new actions.
 	•	The engine is deliberately lightweight — designed to be extended, tested, and explored.
