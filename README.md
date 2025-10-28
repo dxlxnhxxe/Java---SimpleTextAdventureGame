@@ -31,7 +31,7 @@ Each connected client represents a live player in the same persistent world.
 The world is defined using a .dot file (locations, paths, and entities) and an actions.xml file (verbs, interactions, and effects).
 Players type natural-language commands to explore, collect, craft, and act.
 
-🧠 Basic Commands
+Basic Commands
 
 Command	Alias	Description
 look	—	Describes your current location and nearby entities.
@@ -44,7 +44,7 @@ health	—	Check your current health status.
 
 
 
-💬 Example Session
+Example Session
 ```
 user:> look
 You are in cabin - A log cabin in the woods.
@@ -109,19 +109,18 @@ This design makes the game world fully extensible — new locations, entities, a
 
 Your mission is simple:
 
-Explore the world and uncover the legendary pot of gold.
-
-You’ll need curiosity, observation, and a bit of experimentation to succeed.
+•	Explore the world and uncover the legendary pot of gold.
+•	You’ll need curiosity, observation, and a bit of experimentation to succeed.
 
 
 
 ## ⚙️ Technical Overview
 
-	•	Language: Java 17
-	•	Build System: Maven
-	•	Architecture: Client–Server (TCP sockets)
-	•	Game Data: Defined via .dot (entities & locations) and .xml (actions & triggers) files
-	•	Testing: JUnit functional tests (ExampleSTAGTests.java)
+•	Language: Java 17
+•	Build System: Maven
+•	Architecture: Client–Server (TCP sockets)
+•	Game Data: Defined via .dot (entities & locations) and .xml (actions & triggers) files
+•	Testing: JUnit functional tests (ExampleSTAGTests.java)
 
 ```
 File Structure
@@ -150,19 +149,19 @@ Detailed results can be found in:
 target/surefire-reports/
 ```
 
-⸻
+
 
 ## Notes
 
-	•	Each game session is interactive and shared between all connected local clients.
-	•	The modular design allows you to build your own worlds and define new actions.
-	•	The engine is deliberately lightweight — designed to be extended, tested, and explored.
+•	Each game session is interactive and shared between all connected local clients.
+•	The modular design allows you to build your own worlds and define new actions.
+•	The engine is deliberately lightweight — designed to be extended, tested, and explored.
 
-⸻
+
 
 ## Ready to Play?
 
-Start the server, join as a client, and type:
+Start the server, join as a client and type:
 ```
 look
 ```
