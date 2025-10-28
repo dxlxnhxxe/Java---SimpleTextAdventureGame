@@ -116,6 +116,7 @@ You’ll need curiosity, observation, and a bit of experimentation to succeed.
 ⸻
 
 ⚙️ Technical Overview
+
 	•	Language: Java 17
 	•	Build System: Maven
 	•	Architecture: Client–Server (TCP sockets)
