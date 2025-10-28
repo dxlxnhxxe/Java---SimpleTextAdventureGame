@@ -6,7 +6,7 @@ Explore a connected world, collect artefacts, interact with mysterious character
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1️⃣ Start the Game Server
 From the project root directory, run:
@@ -24,9 +24,9 @@ In a separate terminal, start a player session by providing a username:
 
 Each connected client represents a live player in the same persistent world.
 
-⸻
 
-## 🎮 Gameplay
+
+## Gameplay
 
 The world is defined using a .dot file (locations, paths, and entities) and an actions.xml file (verbs, interactions, and effects).
 Players type natural-language commands to explore, collect, craft, and act.
@@ -42,7 +42,7 @@ goto <place>	—	Move to a connected location.
 health	—	Check your current health status.
 
 
-⸻
+
 
 💬 Example Session
 ```
@@ -68,7 +68,7 @@ You drink the potion and your health improves.
 
 ⸻
 
-## 🗺️ World Overview
+## World Overview
 
 The game world consists of several interconnected locations, each containing artefacts, furniture, or characters.
 
@@ -103,19 +103,19 @@ For example:
 ```
 This design makes the game world fully extensible — new locations, entities, and actions can be added without modifying the Java code.
 
-⸻
 
-## 🏆 Objective
 
-Your mission is simple (but not easy):
+## Objective
+
+Your mission is simple:
 
 Explore the world and uncover the legendary pot of gold.
 
 You’ll need curiosity, observation, and a bit of experimentation to succeed.
 
-⸻
 
-##⚙️ Technical Overview
+
+## ⚙️ Technical Overview
 
 	•	Language: Java 17
 	•	Build System: Maven
@@ -137,9 +137,9 @@ src/
      └── ExampleSTAGTests.java
 ```
 
-⸻
 
-## 🧪 Running Tests
+
+## Running Tests
 
 To verify functionality:
 ```bash
@@ -152,7 +152,7 @@ target/surefire-reports/
 
 ⸻
 
-## ✨ Notes
+## Notes
 
 	•	Each game session is interactive and shared between all connected local clients.
 	•	The modular design allows you to build your own worlds and define new actions.
@@ -160,7 +160,7 @@ target/surefire-reports/
 
 ⸻
 
-🗝️ Ready to Play?
+## Ready to Play?
 
 Start the server, join as a client, and type:
 ```
