@@ -1,6 +1,6 @@
 # 🧙‍♂️ Simple Text Adventure Game (STAG)
 
-A minimalist, server–client **text adventure** built in Java for the University of Bristol’s *Object-Oriented Programming with Java* module.  
+A server–client text adventure built in Java, demonstrating strong Object-Oriented Design, network programming, and software architecture skills. 
 
 Explore a connected world, collect artefacts, interact with mysterious characters, and uncover a hidden treasure — all through text commands.
 
