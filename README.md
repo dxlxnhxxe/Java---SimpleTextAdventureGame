@@ -122,9 +122,9 @@ Your mission is simple:
     •	Game Data: Defined via .dot (entities & locations) and .xml (actions & triggers) files
     •	Testing: JUnit functional tests (ExampleSTAGTests.java)
 
-```
-File Structure
 
+File Structure
+```
 src/
  ├── main/java/edu/uob/
  │   ├── GameServer.java
