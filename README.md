@@ -72,13 +72,29 @@ You drink the potion and your health improves.
 
 The game world consists of several interconnected locations, each containing artefacts, furniture, or characters.
 
-Location	Notable Entities	Description
-Cabin	Potion, Axe, Coin, Trapdoor	A log cabin in the woods.
-Forest	Tree, Key	A deep dark forest.
-Cellar	Elf	A dusty cellar below the cabin.
-Riverbank	Horn, River	A grassy riverbank beside a fast-flowing stream.
-Clearing	Ground	A quiet clearing — the soil looks recently disturbed.
-Storeroom	Lumberjack, Log, Shovel, Gold	Storage for unplaced entities.
+- Location
+  - Cabin 
+  - Forest
+  - Cellar
+  - Riverbank
+  - Clearing
+  - Storeroom
+- Artefacts
+  - Potion
+  - Axe
+  - Coin
+  - Key
+  - Horn
+  - Log
+  - Shovel
+  - Gold
+- Furniture 
+  - Trapdoor
+  - Tree
+  - Ground
+- Characters
+  - Elf
+  - Lumberjack
 
 Each action is defined in actions.xml.
 For example:
