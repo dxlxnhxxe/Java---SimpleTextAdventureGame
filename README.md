@@ -1,4 +1,4 @@
-# 🧙‍♂️ Simple Text Adventure Game (STAG)
+# Simple Text Adventure Game (STAG)
 
 A server–client text adventure built in Java, demonstrating strong Object-Oriented Design, network programming, and software architecture skills. 
 
@@ -8,13 +8,13 @@ Explore a connected world, collect artefacts, interact with mysterious character
 
 ## Getting Started
 
-### 1️⃣ Start the Game Server
+### 1 Start the Game Server
 From the project root directory, run:
 ```bash
 ./mvnw clean compile exec:java@server
 ```
 
-### 2️⃣ Launch a Game Client
+### 2 Launch a Game Client
 
 In a separate terminal, start a player session by providing a username:
 
@@ -130,7 +130,7 @@ Your mission is simple:
 
 
 
-## ⚙️ Technical Overview
+## Technical Overview
 
     •	Language: Java 17
     •	Build System: Maven
