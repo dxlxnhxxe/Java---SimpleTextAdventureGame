@@ -21,7 +21,7 @@ public class WebUiResourceTests {
     void testIndexHtmlServes() throws Exception {
         mockMvc.perform(get("/index.html"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("STAG MULTIPLAYER TERMINAL")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("TEXT ADVENTURE GAME")));
     }
 
     @Test
