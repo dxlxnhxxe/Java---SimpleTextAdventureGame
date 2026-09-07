@@ -1,6 +1,6 @@
 edu/uob/GameRestControllerTests.class
-edu/uob/ExampleSTAGTests.class
 edu/uob/AuthSecurityTests.class
+edu/uob/ExampleTAGTests.class
 edu/uob/MultiWorldTests.class
 edu/uob/EntitiesFileTests.class
 edu/uob/GamePersistenceTests.class
