@@ -1,184 +1,165 @@
-# Simple Text Adventure Game (STAG)
+# 🧙‍♂️ STAG Multiplayer — Web-Based Text Adventure Platform
 
-A server–client text adventure built in Java, demonstrating strong Object-Oriented Design, network programming, and software architecture skills. 
-
-Explore a connected world, collect artefacts, interact with mysterious characters, and uncover a hidden treasure — all through text commands.
+A modern, full-stack multiplayer text-adventure platform built with **Java 17**, **Spring Boot 3**, **Spring Data JPA**, **PostgreSQL**, **WebSockets & STOMP**, **Spring Security (JWT)**, and a **Retro CRT Web Terminal UI**.
 
 ---
 
-## Getting Started
+## 🌟 Key Architecture & Features
 
-### 1 Start the Game Server
-From the project root directory, run:
+```text
+                                  ┌───────────────────────────┐
+                                  │   Web Browser (Retro UI)  │
+                                  └─────────────┬─────────────┘
+                                                │ HTTP REST / STOMP WebSocket
+                                                ▼
+                                 ┌─────────────────────────────┐
+                                 │    Spring Boot 3 Backend    │
+                                 ├─────────────────────────────┤
+                                 │ REST Controllers (/api/v1)  │
+                                 │ WebSocket Broker (/ws-game) │
+                                 │ Spring Security & JWT       │
+                                 └──────────────┬──────────────┘
+                                                │
+                                                ▼
+                                 ┌─────────────────────────────┐
+                                 │   Decoupled STAG Engine     │
+                                 │                             │
+                                 │ GameWorld (Multi-Session)   │
+                                 │ Basic & Extended Executors  │
+                                 │ Dynamic DOT & XML Parser    │
+                                 └──────────────┬──────────────┘
+                                                │
+                                                ▼
+                                 ┌─────────────────────────────┐
+                                 │    PostgreSQL Persistence   │
+                                 │                             │
+                                 │ Game Sessions & Checkpoints │
+                                 │ Player States & Inventories │
+                                 │ Location & World Placements │
+                                 └─────────────────────────────┘
+```
+
+- **Instance-Based Multi-Session Game Engine**: Decoupled from legacy static global state into isolated, concurrent `GameWorld` instances.
+- **RESTful Game Management APIs**: Create sessions, list games, inspect state, and execute commands via clean JSON contracts.
+- **Real-Time Multiplayer Synchronization**: WebSocket and STOMP message broker broadcasting room-level and global events (player entry/exit, item drops, interactions) live to all connected players.
+- **Relational Persistence**: PostgreSQL with Spring Data JPA for snapshotting and resuming world states, inventories, health, and entity placements.
+- **Stateless Authentication**: Spring Security 6 with BCrypt password hashing and JWT Bearer tokens.
+- **Retro CRT Web Terminal**: Built-in responsive CRT-styled web terminal featuring scanlines, player HUD, keyboard history navigation, and quick-action toolbars.
+- **Containerized & CI-Ready**: Multi-stage `Dockerfile`, `docker-compose.yml` for single-command deployment, and GitHub Actions CI workflow.
+
+---
+
+## 🚀 Quick Start
+
+### 1️⃣ Option A: Single Command with Docker Compose
+Run the entire platform (Spring Boot backend + PostgreSQL database) with zero local configuration:
+
 ```bash
-./mvnw clean compile exec:java@server
+docker compose up --build
 ```
+Open your browser at **http://localhost:8080** to start playing.
 
-### 2 Launch a Game Client
+---
 
-In a separate terminal, start a player session by providing a username:
+### 2️⃣ Option B: Local Maven Execution
+Run locally with embedded in-memory database:
 
 ```bash
-./mvnw clean compile exec:java@client -Dexec.args="user"
+./mvnw clean spring-boot:run
 ```
+Visit **http://localhost:8080** to access the web terminal interface.
 
-Each connected client represents a live player in the same persistent world.
+---
 
+## 🎮 Gameplay & Commands
 
+### Canonical Basic Commands
+| Command | Alias | Description |
+|---|---|---|
+| `look` | — | Inspect your current location, other players, artefacts, furniture, and exits. |
+| `inventory` | `inv` | View all items currently carried in your inventory. |
+| `get <item>` | — | Pick up an artefact from the current location. |
+| `drop <item>` | — | Drop an artefact from your inventory into your current location. |
+| `goto <location>` | — | Move to an accessible connected location. |
+| `health` | — | Check your current health level. |
 
-## Gameplay
+### Dynamic Extended Actions (XML-Driven)
+The world supports dynamic interactions defined in `config/extended-actions.xml`, including:
+- `unlock trapdoor with key` / `open trapdoor`
+- `chop tree with axe`
+- `drink potion`
+- `bridge river with log`
+- `pay elf with coin`
+- `dig ground with shovel`
 
-The world is defined using a .dot file (locations, paths, and entities) and an actions.xml file (verbs, interactions, and effects).
-Players type natural-language commands to explore, collect, craft, and act.
+---
 
-Basic Commands
+## 🔌 API Reference
 
-Command	Alias	Description
-look	—	Describes your current location and nearby entities.
-inventory	inv	Lists artefacts you’re currently carrying.
-get <item>	—	Pick up an artefact from the current location.
-drop <item>	—	Place an artefact from your inventory into the location.
-goto <place>	—	Move to a connected location.
-health	—	Check your current health status.
+### 🔐 Authentication (`/api/v1/auth`)
+- `POST /api/v1/auth/register` — Register a new player account: `{ "username": "alice", "password": "password123" }`
+- `POST /api/v1/auth/login` — Login and receive JWT bearer token: `{ "username": "alice", "password": "password123" }`
+- `GET /api/v1/auth/me` — Retrieve current authenticated user profile (`Authorization: Bearer <token>`)
 
+### 🕹️ Game Sessions (`/api/v1/games`)
+- `POST /api/v1/games` — Create a new game session: `{ "gameName": "The Old Manor", "template": "extended" }`
+- `GET /api/v1/games` — List all active in-memory game sessions
+- `GET /api/v1/games/{id}` — Get status and connected players for a game session
+- `POST /api/v1/games/{id}/join` — Join a game session: `{ "playerName": "Alice" }`
+- `POST /api/v1/games/{id}/command` — Execute a command: `{ "playerName": "Alice", "command": "look" }`
+- `POST /api/v1/games/{id}/save` — Save game state to checkpoint: `{ "saveSlotName": "checkpoint-1" }`
+- `POST /api/v1/games/load/{saveSlotName}` — Resume a saved game checkpoint from PostgreSQL
+- `GET /api/v1/games/saves` — List all persisted game saves
 
+### 📡 Real-Time WebSockets (`/ws-game`)
+- **STOMP Endpoint**: `/ws-game`
+- **Room Location Topic**: `/topic/games/{gameId}/locations/{locationName}` (Broadcasts player arrival/departure and actions in the room)
+- **Global Event Topic**: `/topic/games/{gameId}/global` (Broadcasts public announcements and global chats)
+- **User Notification Queue**: `/user/queue/notifications`
 
+---
 
-Example Session
-```
-user:> look
-You are in cabin - A log cabin in the woods.
+## 🧪 Testing & Verification
 
-You can see artefacts:
-  potion - A bottle of magic potion
-  axe - A razor sharp axe
-  coin - A silver coin
+Run the full automated test suite containing core engine regression tests, multi-world concurrency tests, REST MockMvc tests, JPA persistence tests, and Web UI tests:
 
-You can see furniture:
-  trapdoor - A locked wooden trapdoor in the floor
-
-You can access from here:
-  forest
-```
-```
-user:> get potion
-user:> drink potion
-You drink the potion and your health improves.
-```
-
-
-
-## World Overview
-
-The game world consists of several interconnected locations, each containing artefacts, furniture, or characters.
-
-- Location
-  - Cabin 
-  - Forest
-  - Cellar
-  - Riverbank
-  - Clearing
-  - Storeroom
-- Artefacts
-  - Potion
-  - Axe
-  - Coin
-  - Key
-  - Horn
-  - Log
-  - Shovel
-  - Gold
-- Furniture 
-  - Trapdoor
-  - Tree
-  - Ground
-- Characters
-  - Elf
-  - Lumberjack
-
-Each action is defined in actions.xml.
-For example:
-```xml
-<action>
-  <triggers>
-    <keyphrase>open</keyphrase>
-    <keyphrase>unlock</keyphrase>
-  </triggers>
-  <subjects>
-    <entity>trapdoor</entity>
-    <entity>key</entity>
-  </subjects>
-  <consumed>
-    <entity>key</entity>
-  </consumed>
-  <produced>
-    <entity>cellar</entity>
-  </produced>
-  <narration>You unlock the door and see steps leading down into a cellar.</narration>
-</action>
-```
-This design makes the game world fully extensible — new locations, entities and actions can be added without modifying the Java code.
-
-
-
-## Objective
-
-Your mission is simple:
-
-    •	Explore the world and uncover the legendary pot of gold.
-    •	You’ll need curiosity, observation, and a bit of experimentation to succeed.
-
-
-
-## Technical Overview
-
-    •	Language: Java 17
-    •	Build System: Maven
-    •	Architecture: Client–Server (TCP sockets)
-    •	Game Data: Defined via .dot (entities & locations) and .xml (actions & triggers) files
-    •	Testing: JUnit functional tests (ExampleSTAGTests.java)
-
-
-File Structure
-```
-src/
- ├── main/java/edu/uob/
- │   ├── GameServer.java
- │   ├── GameClient.java
- │   ├── ExecuteBasicCommands.java
- │   ├── ExecuteExtendedCommands.java
- │   └── ...
- └── test/java/edu/uob/
-     └── ExampleSTAGTests.java
-```
-
-
-
-## Running Tests
-
-To verify functionality:
 ```bash
 ./mvnw clean test
 ```
-Detailed results can be found in:
+
+### Test Coverage Highlights
+- `ExampleSTAGTests`: 22 canonical STAG game mechanics and progression tests.
+- `MultiWorldTests`: Concurrency and state-isolation tests between independent `GameWorld` instances.
+- `GameRestControllerTests`: MockMvc validation of REST endpoints, command execution, and error handling.
+- `GamePersistenceTests`: Relational database save/load integration tests verifying world state recovery.
+- `AuthSecurityTests`: User registration, BCrypt hashing, JWT issuance, and protected endpoint verification.
+- `MultiplayerWebSocketTests`: Room-based location pub/sub event verification.
+- `WebUiResourceTests`: Static web terminal asset delivery tests.
+
+---
+
+## 📂 Project Structure
+
+```text
+cw-stag/
+├── .github/workflows/ci.yml # Automated CI pipeline
+├── config/                  # DOT entity graphs & XML action definitions
+├── Dockerfile               # Multi-stage container build
+├── docker-compose.yml       # Production stack (Spring Boot + PostgreSQL)
+├── pom.xml                  # Maven configuration (Spring Boot 3 + Java 17)
+└── src/
+    ├── main/
+    │   ├── java/edu/uob/
+    │   │   ├── config/      # Spring Security, WebSocket, and Web MVC config
+    │   │   ├── controller/  # REST endpoints (GameSessionController, AuthController, CommandController)
+    │   │   ├── dto/         # Request & Response Data Transfer Objects
+    │   │   ├── persistence/ # JPA entities (GameSession, Player, Location) & Repositories
+    │   │   ├── security/    # JWT token provider & authentication filter
+    │   │   ├── service/     # GameEngineService, GamePersistenceService, UserService
+    │   │   ├── websocket/   # STOMP controller & GameEventPublisher
+    │   │   └── ...          # Decoupled STAG Engine (GameWorld, Parsers, Tokenisers, Executors)
+    │   └── resources/
+    │       ├── application.yml # Spring Boot configuration
+    │       └── static/         # Retro CRT Web Terminal UI (HTML5, CSS3, JS)
+    └── test/java/edu/uob/   # Comprehensive unit & integration test suites
 ```
-target/surefire-reports/
-```
-
-
-
-## Notes
-
-    •	Each game session is interactive and shared between all connected local clients.
-    •	The modular design allows you to build your own worlds and define new actions.
-    •	The engine is deliberately lightweight — designed to be extended, tested, and explored.
-
-
-
-## Ready to Play?
-
-Start the server, join as a client and type:
-```
-look
-```
-The adventure awaits.

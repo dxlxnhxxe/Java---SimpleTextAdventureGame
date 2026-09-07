@@ -210,6 +210,16 @@ class ExampleSTAGTests {
         sendCommandToServer("simon: goto cabin");
         sendCommandToServer("simon: unlock trapdoor");
         sendCommandToServer("simon: goto cellar");
+        sendCommandToServer("simon: pay elf");
+        sendCommandToServer("simon: get shovel");
+        sendCommandToServer("simon: goto cabin");
+        sendCommandToServer("simon: goto forest");
+        sendCommandToServer("simon: chop tree");
+        sendCommandToServer("simon: get log");
+        sendCommandToServer("simon: goto riverbank");
+        sendCommandToServer("simon: bridge river");
+        sendCommandToServer("simon: goto clearing");
+        sendCommandToServer("simon: dig ground");
         String response = sendCommandToServer("simon: get gold").toLowerCase();
         assertTrue(response.contains("gold"), "Could not complete marking game to retrieve gold");
     }

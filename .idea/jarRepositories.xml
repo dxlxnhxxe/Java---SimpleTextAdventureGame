@@ -14,6 +14,11 @@
     <remote-repository>
       <option name="id" value="maven-repository" />
       <option name="name" value="maven-repository" />
+      <option name="url" value="file:////Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/libs" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven-repository" />
+      <option name="name" value="maven-repository" />
       <option name="url" value="file:////Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag OFFICIAL to submit/libs" />
     </remote-repository>
     <remote-repository>

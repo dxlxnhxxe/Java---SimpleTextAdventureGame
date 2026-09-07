@@ -1,3 +1,9 @@
-edu/uob/ActionsFileTests.class
+edu/uob/GameRestControllerTests.class
 edu/uob/ExampleSTAGTests.class
+edu/uob/AuthSecurityTests.class
+edu/uob/MultiWorldTests.class
 edu/uob/EntitiesFileTests.class
+edu/uob/GamePersistenceTests.class
+edu/uob/ActionsFileTests.class
+edu/uob/WebUiResourceTests.class
+edu/uob/MultiplayerWebSocketTests.class

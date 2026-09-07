@@ -5,14 +5,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.util.*;
-import edu.uob.CommandTokeniser.TokenisedCommand;
-import edu.uob.CommandTokeniser.CommandCheckResult;
 
 public final class GameServer {
     private static final char END_OF_TRANSMISSION = 4;
 
     private static final Map<String, String> allCommandSynonyms = new HashMap<>();
     private final Map<String, Players> allPlayersInServer = new HashMap<>();
+    private final GameWorld gameWorld;
 
     public static void main(String[] args) throws IOException {
         File entitiesFile = Paths.get("config", "extended-entities.dot")
@@ -51,57 +50,20 @@ public final class GameServer {
         GameEntityParser.parseEntities(entitiesFile);
         GameActionParser.parseXML(actionsFile);
 
+        allCommandSynonyms.clear();
         allCommandSynonyms.put("inv", "inventory");
         allCommandSynonyms.put("inventory", "inventory");
         allCommandSynonyms.putAll(GameActionParser.extendedKeyphraseSynonyms);
+
+        this.gameWorld = GameWorld.createFromFiles(entitiesFile, actionsFile);
+    }
+
+    public GameWorld getGameWorld() {
+        return gameWorld;
     }
 
     public String handleCommand(String command) {
-        int colonIndex = command.indexOf(':');
-        if (colonIndex == -1) {
-            return "ERROR: Invalid command format. Missing ':' between username and command.";
-        }
-        String username = command.substring(0, colonIndex).trim();
-        if (!username.matches("[a-zA-Z\\s'-]+")) {
-            return "ERROR: Invalid username format.";
-        }
-
-        Players currentPlayer = allPlayersInServer.get(username);
-        if (currentPlayer == null) {
-            currentPlayer = new Players(username, "A new Player");
-            allPlayersInServer.put(username, currentPlayer);
-
-            // Place player in their starting location
-            String locationName = currentPlayer.currentLocation.getName();
-            Map<String, Players> playersInLocation = GameEntityParser.locationWithPlayers.get(locationName);
-            if (playersInLocation == null) {
-                playersInLocation = new HashMap<>();
-                GameEntityParser.locationWithPlayers.put(locationName, playersInLocation);
-            }
-            playersInLocation.put(currentPlayer.getName(), currentPlayer);
-        }
-        String userCommand = command.substring(Math.addExact(colonIndex, 1)).trim().replaceAll("\\s+", " ").toLowerCase();
-        if (userCommand.isEmpty()) {
-            return "ERROR: Empty command after username.";
-        }
-
-        //Build keyphrase set from all extended actions
-        Set<String> keyphrases = CommandTokeniser.buildExtendedKeyphraseSet(GameActionParser.XMLList);
-        TokenisedCommand tokenised = CommandTokeniser.tokeniseAndClassifyCommand(userCommand, keyphrases,
-                ExecuteBasicCommands.basicCommands, allCommandSynonyms, currentPlayer);
-        CommandCheckResult result = tokenised.result;
-        switch (result) {
-            case BASIC_COMMAND:
-                return ExecuteBasicCommands.executeBasicCommand(currentPlayer, userCommand);
-            case EXTENDED_COMMAND:
-                return ExecuteExtendedCommands.executeExtendedCommand(userCommand, currentPlayer);
-            case AMBIGUOUS_COMMAND:
-                return "ERROR: Ambiguous command.";
-            case NO_COMMAND_FOUND:
-                // No known command – echo the user's command so tests looking for mentioned words can still match
-                return userCommand;
-        }
-        return "ERROR: Unhandled command scenario.";
+        return gameWorld.handleCommand(command);
     }
 
     public void blockingListenOn(int portNumber) throws IOException {
@@ -120,7 +82,7 @@ public final class GameServer {
                             this.handleClient(clientSocket);
                         } catch (IOException e) {
                             StringBuilder IOExceptionMessage = new StringBuilder();
-                            IOExceptionMessage.append("Client connection errr: ").append(e.getMessage());
+                            IOExceptionMessage.append("Client connection error: ").append(e.getMessage());
                             System.out.println(IOExceptionMessage);
                         }
                     }
@@ -129,7 +91,7 @@ public final class GameServer {
                         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                         try {
                             String command;
-                            while ((command = reader.readLine()) != null){
+                            while ((command = reader.readLine()) != null) {
                                 StringBuilder commandMessage = new StringBuilder();
                                 commandMessage.append("Received command: ").append(command);
                                 System.out.println(commandMessage);
@@ -140,7 +102,7 @@ public final class GameServer {
                                 writer.write("\n");
                                 writer.flush();
                             }
-                        } finally{
+                        } finally {
                             reader.close();
                             writer.close();
                             socket.close();
@@ -158,7 +120,7 @@ public final class GameServer {
              BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()))) {
             System.out.println("Connection established");
             String incomingCommand = reader.readLine();
-            if(incomingCommand != null) {
+            if (incomingCommand != null) {
                 StringBuilder logMessage = new StringBuilder();
                 logMessage.append("Received message from: ");
                 logMessage.append(incomingCommand);

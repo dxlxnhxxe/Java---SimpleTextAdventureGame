@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAG — Multiplayer Text Adventure</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="crt-theme">
+    <div class="crt-overlay"></div>
+    <div class="terminal-container">
+        <!-- Top Navigation / Status Header -->
+        <header class="terminal-header">
+            <div class="brand">
+                <span class="terminal-icon">⚡</span>
+                <span class="title">TERMINAL</span>
+                <span class="version-tag">v2.0-WEB</span>
+            </div>
+            <div class="session-info">
+                <span id="session-badge" class="badge">GAME: <strong id="display-game-id">NONE</strong></span>
+                <span id="connection-status" class="status-indicator online">ONLINE</span>
+            </div>
+        </header>
+
+        <!-- Player HUD Bar -->
+        <section class="player-hud">
+            <div class="hud-item">
+                <span class="hud-label">PLAYER:</span>
+                <span id="hud-player-name" class="hud-val">Guest</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">LOCATION:</span>
+                <span id="hud-location" class="hud-val highlight">cabin</span>
+            </div>
+            <div class="hud-item hud-inventory-container">
+                <span class="hud-label">INVENTORY:</span>
+                <div id="hud-inventory" class="inventory-chips">
+                    <span class="empty-inv">EMPTY</span>
+                </div>
+            </div>
+            <div class="hud-actions">
+                <button id="btn-auth" class="hud-btn" title="Sign in or register account">SIGN IN</button>
+                <button id="btn-save-game" class="hud-btn" title="Save current progress">SAVE</button>
+                <button id="btn-switch-game" class="hud-btn" title="Create or join game">GAMES</button>
+            </div>
+        </section>
+
+        <!-- Main Terminal Output Display -->
+        <main id="terminal-screen" class="terminal-screen">
+            <div class="terminal-line system-msg">=============================================================</div>
+            <div class="terminal-line system-msg">   TEXT ADVENTURE GAME  </div>
+            <div class="terminal-line system-msg">=============================================================</div>
+            <div class="terminal-line dim-msg">Type commands below or use quick actions. Use Up/Down keys for history.</div>
+            <div id="terminal-output"></div>
+        </main>
+
+        <!-- Quick Action Toolbar -->
+        <nav id="quick-toolbar" class="quick-toolbar">
+            <button class="cmd-btn" data-cmd="look">LOOK</button>
+            <button class="cmd-btn" data-cmd="inventory">INVENTORY</button>
+            <button class="cmd-btn" data-cmd="health">HEALTH</button>
+        </nav>
+
+        <!-- Interactive Command Line Prompt -->
+        <form id="command-form" class="command-bar" autocomplete="off">
+            <span id="prompt-label" class="prompt-label">alice@cabin &gt;</span>
+            <input type="text" id="command-input" class="command-input" placeholder="Type one of the commands above." autofocus spellcheck="false">
+            <button type="submit" class="send-btn">EXECUTE</button>
+        </form>
+    </div>
+
+    <!-- Session Management Modal -->
+    <div id="session-modal" class="modal-backdrop">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>GAME SESSION SETUP</h3>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h4>CREATE NEW GAME</h4>
+                    <div class="input-row">
+                        <input type="text" id="new-game-name" placeholder="Game Name (e.g. Mystery Manor)" value="Mystery Manor">
+                        <button id="btn-create-game" class="action-btn">CREATE</button>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h4>OR JOIN EXISTING GAME</h4>
+                    <div class="input-row">
+                        <input type="text" id="join-game-id" placeholder="Game ID (e.g. 1a2b3c4d)">
+                        <input type="text" id="join-player-name" placeholder="Your Player Name" value="Alice">
+                        <button id="btn-join-game" class="action-btn">JOIN</button>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h4>SAVED CHECKPOINTS</h4>
+                    <div id="saved-games-list" class="saved-games-list">
+                        <em>No saved checkpoints detected.</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Game Modal -->
+    <div id="save-modal" class="modal-backdrop">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>SAVE GAME PROGRESS</h3>
+                <button id="close-save-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Save world state, inventories and player locations to PostgreSQL database:</p>
+                <div class="input-row">
+                    <input type="text" id="save-slot-input" placeholder="Checkpoint Name (e.g. checkpoint-1)" value="checkpoint-1">
+                    <button id="btn-confirm-save" class="action-btn">SAVE NOW</button>
+                </div>
+                <div id="save-status-msg" class="modal-feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth (Sign In / Register) Modal -->
+    <div id="auth-modal" class="modal-backdrop">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="auth-modal-title">AGENT IDENTIFICATION</h3>
+                <button id="close-auth-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="auth-tabs">
+                    <button id="tab-login" class="auth-tab active" type="button">SIGN IN</button>
+                    <button id="tab-register" class="auth-tab" type="button">REGISTER</button>
+                </div>
+                
+                <form id="auth-form" autocomplete="off">
+                    <div class="modal-section">
+                        <h4>EMAIL / IDENTIFIER</h4>
+                        <div class="input-row">
+                            <input type="email" id="auth-email" placeholder="explorer@stag.net (any email works)" required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>PASSWORD (CONFIDENTIAL & ENCRYPTED)</h4>
+                        <div class="input-row">
+                            <input type="password" id="auth-password" placeholder="••••••••" required autocomplete="current-password">
+                        </div>
+                        <div class="auth-security-note">🔒 Passwords are encrypted with BCrypt hashing and never stored in plaintext.</div>
+                    </div>
+
+                    <div class="input-row" style="margin-top: 6px;">
+                        <button type="submit" id="btn-auth-submit" class="action-btn" style="width: 100%;">SIGN IN</button>
+                    </div>
+                </form>
+
+                <div id="auth-logged-in-panel" class="auth-logged-in-panel" style="display: none;">
+                    <p>Currently authenticated as: <strong id="auth-current-user-display" class="highlight">user</strong></p>
+                    <p class="dim-msg">Role: <span id="auth-current-role-display">ROLE_USER</span> | Token: <span class="highlight">Active & Verified</span></p>
+                    <div class="input-row" style="margin-top: 10px;">
+                        <button id="btn-logout-submit" class="action-btn" style="width: 100%; background: #5c1818;">SIGN OUT / DISCONNECT</button>
+                    </div>
+                </div>
+                
+                <div id="auth-status-msg" class="modal-feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

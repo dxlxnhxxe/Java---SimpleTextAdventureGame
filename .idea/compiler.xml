@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="cw-stag" options="-parameters -Xlint:all -Xlint:-processing" />
+      <module name="cw-stag" options="-parameters -Xlint:all -Xlint:-processing -Xlint:-deprecation" />
     </option>
   </component>
 </project>

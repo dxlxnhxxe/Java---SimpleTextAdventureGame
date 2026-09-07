@@ -1,1 +1,60 @@
+# Compiled Class Files & Build Artifacts
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# Operating System Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor Configurations
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+*.sublime-project
+*.sublime-workspace
+*.junie/
+
+# Environment Variables, Secrets & Certificates
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.pkcs12
+*.p12
+*.jks
+
+# Logs and Crash Reports
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+hs_err_pid*
+replay_pid*
+
+# Database & Local Storage Files
+*.db
+*.sqlite
+*.sqlite3
+db/
+*.seed

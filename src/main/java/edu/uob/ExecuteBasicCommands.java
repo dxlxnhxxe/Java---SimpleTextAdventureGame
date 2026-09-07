@@ -9,207 +9,261 @@ public class ExecuteBasicCommands {
     );
     public static List<String> validBuiltIn = new LinkedList<>();
 
-    public static String executeBasicCommand (Players currentPlayer, String userCommand){
-        Set<String> keyphrases = CommandTokeniser.buildExtendedKeyphraseSet(GameActionParser.XMLList);
+    public static String executeBasicCommand(Players currentPlayer, String userCommand) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return executeBasicCommand(world, currentPlayer, userCommand);
+    }
+
+    public static String executeBasicCommand(GameWorld world, Players currentPlayer, String userCommand) {
+        List<GameActionNode> actions = (world != null) ? world.getActions() : GameActionParser.XMLList;
+        Map<String, String> synonyms = (world != null) ? world.getAllCommandSynonyms() : GameServer.getAllCommandSynonyms();
+        Set<String> keyphrases = CommandTokeniser.buildExtendedKeyphraseSet(actions);
 
         LinkedList<String> tokens = CommandTokeniser.tokeniseAndClassifyCommand(
-                userCommand, keyphrases, basicCommands, GameServer.getAllCommandSynonyms(), currentPlayer).tokens;
-        validBuiltIn.clear();
+                userCommand, keyphrases, basicCommands, synonyms, currentPlayer, world).tokens;
+
+        List<String> matchedCommands = new LinkedList<>();
+
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
+        Map<String, Locations> allLocations = (world != null)
+                ? world.getAllLocations()
+                : GameEntityParser.allLocations;
+
         for (String token : tokens) {
             if (basicCommands.contains(token)) {
                 if (token.equals("get")) {
-                    Map<String, Artefacts> artefactsHere = GameEntityParser.locationWithArtefacts.get(currentPlayer.currentLocation.getName());
-                    if (artefactsHere != null) {
-                        for (String artefactTokens : tokens){
-                            for (Map.Entry<String, Artefacts> entry : artefactsHere.entrySet()) {
-                                if (artefactTokens.equals(entry.getKey())) {
-                                    validBuiltIn.add(token);
+                    if (currentPlayer != null && currentPlayer.currentLocation != null) {
+                        Map<String, Artefacts> artefactsHere = locationWithArtefacts.get(currentPlayer.currentLocation.getName());
+                        if (artefactsHere != null) {
+                            for (String artefactTokens : tokens) {
+                                for (Map.Entry<String, Artefacts> entry : artefactsHere.entrySet()) {
+                                    if (artefactTokens.equals(entry.getKey())) {
+                                        matchedCommands.add(token);
+                                    }
                                 }
                             }
                         }
                     }
-
                 } else if (token.equals("drop")) {
-                    Map<String, Artefacts> artefactsInInventory = currentPlayer.playerInventory;
-                    if (artefactsInInventory != null) {
-                        for (String inventoryArtefactTokens : tokens){
+                    if (currentPlayer != null && currentPlayer.playerInventory != null) {
+                        Map<String, Artefacts> artefactsInInventory = currentPlayer.playerInventory;
+                        for (String inventoryArtefactTokens : tokens) {
                             for (Map.Entry<String, Artefacts> entry : artefactsInInventory.entrySet()) {
                                 if (inventoryArtefactTokens.equals(entry.getKey())) {
-                                    validBuiltIn.add(token);
+                                    matchedCommands.add(token);
                                 }
                             }
                         }
                     }
                 } else if (token.equals("goto")) {
-                    Map<String, Locations> allLocations = GameEntityParser.allLocations;
                     if (allLocations != null) {
-                        for (String locationTokens : tokens){
+                        for (String locationTokens : tokens) {
                             for (Map.Entry<String, Locations> entry : allLocations.entrySet()) {
                                 if (locationTokens.equals(entry.getKey())) {
-                                    validBuiltIn.add(token);
+                                    matchedCommands.add(token);
                                 }
                             }
                         }
                     }
-                }
-                else {
-                    //Valid basic command
-                    validBuiltIn.add(token);
+                } else {
+                    matchedCommands.add(token);
                 }
             }
         }
-        if (validBuiltIn.isEmpty()) {
+        if (matchedCommands.isEmpty()) {
             return "No recognisable basic command found.";
         }
-        String command = validBuiltIn.get(0);
-        switch(command){
+        String command = matchedCommands.get(0);
+        switch (command) {
             case "look":
-                return ExecuteBasicCommands.lookAround(currentPlayer, userCommand);
+                return lookAround(world, currentPlayer, userCommand);
             case "inventory":
-                return ExecuteBasicCommands.displayInventory(currentPlayer, userCommand);
+                return displayInventory(world, currentPlayer, userCommand);
             case "get":
-                return ExecuteBasicCommands.getArtefacts(userCommand, currentPlayer);
+                return getArtefacts(world, userCommand, currentPlayer);
             case "drop":
-                return ExecuteBasicCommands.dropArtefact(userCommand, currentPlayer);
+                return dropArtefact(world, userCommand, currentPlayer);
             case "goto":
-                return ExecuteBasicCommands.moveTo(userCommand, currentPlayer);
+                return moveTo(world, userCommand, currentPlayer);
             case "health":
-                return ExecuteBasicCommands.displayHealth(currentPlayer, userCommand);
+                return displayHealth(world, currentPlayer, userCommand);
             default:
                 return "Unknown basic command.";
         }
     }
 
-    public static String lookAround (Players currentPlayer, String userCommand){
-        if (detectAllEntitiesInCommand(userCommand)){
+    public static String lookAround(Players currentPlayer, String userCommand) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return lookAround(world, currentPlayer, userCommand);
+    }
+
+    public static String lookAround(GameWorld world, Players currentPlayer, String userCommand) {
+        if (detectAllEntitiesInCommand(world, userCommand)) {
             return "'look' cannot be used with specific entities.";
         }
-        //Import parsed entities maps
-        Map<String, Players> playersInLocation = GameEntityParser.locationWithPlayers.get(currentPlayer.currentLocation.getName());
-        Map<String, Artefacts> artefacts = GameEntityParser.locationWithArtefacts.get(currentPlayer.currentLocation.getName());
-        Map<String, Furnitures> furnitures = GameEntityParser.locationWithFurnitures.get(currentPlayer.currentLocation.getName());
-        Map<String, Characters> characters = GameEntityParser.locationWithCharacters.get(currentPlayer.currentLocation.getName());
+
+        Map<String, Map<String, Players>> locationWithPlayers = (world != null)
+                ? world.getLocationWithPlayers()
+                : GameEntityParser.locationWithPlayers;
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
+        Map<String, Map<String, Furnitures>> locationWithFurnitures = (world != null)
+                ? world.getLocationWithFurnitures()
+                : GameEntityParser.locationWithFurnitures;
+        Map<String, Map<String, Characters>> locationWithCharacters = (world != null)
+                ? world.getLocationWithCharacters()
+                : GameEntityParser.locationWithCharacters;
+        Map<String, LinkedList<String>> locationPaths = (world != null)
+                ? world.getLocationPaths()
+                : GameEntityParser.locationPaths;
+
+        String locName = currentPlayer.currentLocation.getName();
+        Map<String, Players> playersInLocation = locationWithPlayers.get(locName);
+        Map<String, Artefacts> artefacts = locationWithArtefacts.get(locName);
+        Map<String, Furnitures> furnitures = locationWithFurnitures.get(locName);
+        Map<String, Characters> characters = locationWithCharacters.get(locName);
 
         StringBuilder lookList = new StringBuilder();
-        lookList.append("\nYou are at: ").append("\n").append("  -").append(currentPlayer.currentLocation.toString()).append("\n");
+        lookList.append("\nYou are at: \n  -").append(currentPlayer.currentLocation.toString()).append("\n");
 
-        //Display Players in the user's location
-        if (playersInLocation == null || playersInLocation.isEmpty()){
-            lookList.append("\nPlayers:\n").append("  -No players found\n");
+        // Display Players in the user's location
+        if (playersInLocation == null || playersInLocation.isEmpty()) {
+            lookList.append("\nPlayers:\n  -No players found\n");
         } else {
             lookList.append("\nPlayers:\n");
             boolean foundOtherPlayers = false;
-            for (Players player : playersInLocation.values()){
-                if (!player.getName().equals(currentPlayer.getName())){
+            for (Players player : playersInLocation.values()) {
+                if (!player.getName().equals(currentPlayer.getName())) {
                     lookList.append("  - ").append(player.getName()).append("\n");
                     foundOtherPlayers = true;
                 }
             }
-            if (!foundOtherPlayers){
+            if (!foundOtherPlayers) {
                 lookList.append("  -No players found\n");
             }
         }
 
-        //Display artefacts in the user's location
+        // Display artefacts in the user's location
         if (artefacts == null || artefacts.isEmpty()) {
-            lookList.append("\nArtefacts:\n").append("  -No artefacts found\n");
+            lookList.append("\nArtefacts:\n  -No artefacts found\n");
         } else {
             lookList.append("\nArtefacts:\n");
-            for(Artefacts artefactsInLocation : artefacts.values()){
+            for (Artefacts artefactsInLocation : artefacts.values()) {
                 lookList.append("  -").append(artefactsInLocation.toString()).append("\n");
             }
         }
 
-        //Display furniture in the user's location
+        // Display furniture in the user's location
         if (furnitures == null || furnitures.isEmpty()) {
-            lookList.append("\nFurnitures:\n").append("  -No furnitures found\n");
+            lookList.append("\nFurnitures:\n  -No furnitures found\n");
         } else {
-            lookList.append("\nFurnitures:").append("\n");
-            for(Furnitures furnituresInLocation : furnitures.values()){
+            lookList.append("\nFurnitures:\n");
+            for (Furnitures furnituresInLocation : furnitures.values()) {
                 lookList.append("  -").append(furnituresInLocation.toString()).append("\n");
             }
         }
 
-        //Display characters in the user's location
+        // Display characters in the user's location
         if (characters == null || characters.isEmpty()) {
-            lookList.append("\nCharacters:\n").append("  -No Characters found\n");
+            lookList.append("\nCharacters:\n  -No Characters found\n");
         } else {
             lookList.append("\nCharacters:\n");
-            for(Characters charactersInLocation : characters.values()){
+            for (Characters charactersInLocation : characters.values()) {
                 lookList.append("  -").append(charactersInLocation.toString()).append("\n");
             }
         }
 
-        //Display paths in the user's location
-        LinkedList<String> Paths = GameEntityParser.locationPaths.get(currentPlayer.currentLocation.getName());
+        // Display paths in the user's location
+        LinkedList<String> Paths = locationPaths.get(locName);
         lookList.append("\nPaths:\n");
-        if (Paths == null || Paths.isEmpty()){
+        if (Paths == null || Paths.isEmpty()) {
             lookList.append("  -No paths found\n");
         } else {
             String pathList = String.join(", ", Paths);
             lookList.append("  -").append(pathList).append("\n");
         }
 
-        //Storeroom entities
-        lookList.append("\nStoreroom:\n");
+//        // Storeroom entities
+//        lookList.append("\nStoreroom:\n");
+//
+//        Map<String, Artefacts> storeroomArtefacts = locationWithArtefacts.get("storeroom");
+//        if (storeroomArtefacts == null || storeroomArtefacts.isEmpty()) {
+//            lookList.append("- No artefacts in storeroom\n");
+//        } else {
+//            lookList.append("Artefacts:\n");
+//            for (Artefacts artefact : storeroomArtefacts.values()) {
+//                lookList.append("- ").append(artefact.toString()).append("\n");
+//            }
+//        }
+//
+//        Map<String, Furnitures> storeroomFurnitures = locationWithFurnitures.get("storeroom");
+//        if (storeroomFurnitures == null || storeroomFurnitures.isEmpty()) {
+//            lookList.append("Furnitures:\n- No furnitures in storeroom\n");
+//        } else {
+//            lookList.append("Furnitures:\n");
+//            for (Furnitures furniture : storeroomFurnitures.values()) {
+//                lookList.append("- ").append(furniture.toString()).append("\n");
+//            }
+//        }
+//
+//        Map<String, Characters> storeroomCharacters = locationWithCharacters.get("storeroom");
+//        if (storeroomCharacters == null || storeroomCharacters.isEmpty()) {
+//            lookList.append("Characters:\n- No characters in storeroom\n");
+//        } else {
+//            lookList.append("Characters:\n");
+//            for (Characters character : storeroomCharacters.values()) {
+//                lookList.append("- ").append(character.toString()).append("\n");
+//            }
+//        }
 
-        // Display artefacts in storeroom
-        Map<String, Artefacts> storeroomArtefacts = GameEntityParser.locationWithArtefacts.get("storeroom");
-        if (storeroomArtefacts == null || storeroomArtefacts.isEmpty()) {
-            lookList.append("- No artefacts in storeroom\n");
-        } else {
-            lookList.append("Artefacts:\n");
-            for (Artefacts artefact : storeroomArtefacts.values()) {
-                lookList.append("- ").append(artefact.toString()).append("\n");
-            }
-        }
-
-
-        // Display furniture in storeroom
-        Map<String, Furnitures> storeroomFurnitures = GameEntityParser.locationWithFurnitures.get("storeroom");
-        if (storeroomFurnitures == null || storeroomFurnitures.isEmpty()) {
-            lookList.append("Furnitures:\n- No furnitures in storeroom\n");
-        } else {
-            lookList.append("Furnitures:\n");
-            for (Furnitures furniture : storeroomFurnitures.values()) {
-                lookList.append("- ").append(furniture.toString()).append("\n");
-            }
-        }
-
-        // Display characters
-        Map<String, Characters> storeroomCharacters = GameEntityParser.locationWithCharacters.get("storeroom");
-        if (storeroomCharacters == null || storeroomCharacters.isEmpty()) {
-            lookList.append("Characters:\n- No characters in storeroom\n");
-        } else {
-            lookList.append("Characters:\n");
-            for (Characters character : storeroomCharacters.values()) {
-                lookList.append("- ").append(character.toString()).append("\n");
-            }
-        }
         return lookList.toString();
     }
 
-    public static String displayInventory (Players currentPlayer, String userCommand){
-        if (detectAllEntitiesInCommand(userCommand)){
-            return "'inventory' cannot be used with specific entities";
+    public static String displayInventory(Players currentPlayer, String userCommand) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return displayInventory(world, currentPlayer, userCommand);
+    }
+
+    public static String displayInventory(GameWorld world, Players currentPlayer, String userCommand) {
+        if (detectAllEntitiesInCommand(world, userCommand)) {
+            return "'inv' cannot be used with specific entities.";
         }
-        if(currentPlayer.playerInventory.isEmpty()){
-            return "\nInventory is empty\n";
+        if (currentPlayer.playerInventory == null || currentPlayer.playerInventory.isEmpty()) {
+            return "Your inventory is currently empty.";
         }
-        StringBuilder inventoryList = new StringBuilder("\nInventory:\n");
-        for(Artefacts artefact : currentPlayer.playerInventory.values()){
-            inventoryList.append(artefact.toString()).append("\n");
+        StringBuilder inventoryList = new StringBuilder();
+        inventoryList.append("Inventory:\n");
+        for (Artefacts artefact : currentPlayer.playerInventory.values()) {
+            inventoryList.append("  -").append(artefact.toString()).append("\n");
         }
         return inventoryList.toString();
     }
 
-    public static String displayHealth (Players currentPlayer, String userCommand){
-        if (detectAllEntitiesInCommand(userCommand)){
+    public static String displayHealth(Players currentPlayer, String userCommand) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return displayHealth(world, currentPlayer, userCommand);
+    }
+
+    public static String displayHealth(GameWorld world, Players currentPlayer, String userCommand) {
+        if (detectAllEntitiesInCommand(world, userCommand)) {
             return "'health' cannot be used with specific entities.";
+        }
+        if (currentPlayer.playerHealth == null) {
+            return "Player health is currently unavailable";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("Health: ").append(currentPlayer.playerHealth);
-        // Add helpful keywords for tests looking for qualitative changes
         if (currentPlayer.playerHealth <= 1) {
             sb.append(" (reduced)");
         } else if (currentPlayer.playerHealth >= 3) {
@@ -218,133 +272,171 @@ public class ExecuteBasicCommands {
         return sb.toString();
     }
 
-    public static String moveTo (String userCommand, Players currentPlayer){
-        LinkedList<String> matchedDestination = ExecuteBasicCommands.extractDestination(userCommand);
-
-        if (matchedDestination.isEmpty()) {
-            return "No valid destination found.";
-        }
-        if (matchedDestination.size() > 1) {
-            return "Ambiguous destination.";
-        }
-
-        String destinationToMoveTo = matchedDestination.getFirst();
-        String currentLocationName = currentPlayer.currentLocation.getName();
-        LinkedList<String> possibleDestinations = GameEntityParser.locationPaths.get(currentLocationName);
-        Map<String, Players> oldLocationPlayers = GameEntityParser.locationWithPlayers.get(currentPlayer.currentLocation.getName());
-        Map<String, Players> newLocationPlayers = GameEntityParser.locationWithPlayers.get(destinationToMoveTo);
-        Locations newLocation = GameEntityParser.allLocations.get(destinationToMoveTo);
-        if (possibleDestinations == null || !possibleDestinations.contains(destinationToMoveTo)) {
-            return "You can't go there from here";
-        }
-        if (newLocation == null){
-            return "That location does not exist";
-        }
-        if (oldLocationPlayers != null) {
-            oldLocationPlayers.remove(currentPlayer.getName());
-        }
-        currentPlayer.currentLocation = newLocation;
-
-        if (newLocationPlayers == null) {
-            newLocationPlayers = new HashMap<>();
-            GameEntityParser.locationWithPlayers.put(destinationToMoveTo, newLocationPlayers);
-        }
-        newLocationPlayers.put(currentPlayer.getName(), currentPlayer);
-        return "You moved to the desired location";
+    public static String moveTo(String userCommand, Players currentPlayer) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return moveTo(world, userCommand, currentPlayer);
     }
 
-    public static LinkedList<String> extractDestination (String userCommand){
-        LinkedList<String> wordTokens = ExecuteBasicCommands.tokeniseCommand(userCommand);
-        Set<String> destinations = new HashSet<>();
-        for (LinkedList<String> paths : GameEntityParser.locationPaths.values()) {
-            destinations.addAll(paths);
+    public static String moveTo(GameWorld world, String userCommand, Players currentPlayer) {
+        Map<String, LinkedList<String>> locationPaths = (world != null)
+                ? world.getLocationPaths()
+                : GameEntityParser.locationPaths;
+        Map<String, Locations> allLocations = (world != null)
+                ? world.getAllLocations()
+                : GameEntityParser.allLocations;
+        Map<String, Map<String, Players>> locationWithPlayers = (world != null)
+                ? world.getLocationWithPlayers()
+                : GameEntityParser.locationWithPlayers;
+
+        LinkedList<String> wordTokens = tokeniseCommand(userCommand);
+        LinkedList<String> availablePaths = locationPaths.get(currentPlayer.currentLocation.getName());
+
+        if (availablePaths == null || availablePaths.isEmpty()) {
+            return "No available paths from this location.";
         }
-        LinkedList<String>matchedDestinations = new LinkedList<>();
-        for (String token : wordTokens){
-            if (destinations.contains(token)){
-                matchedDestinations.add(token);
+
+        LinkedList<String> requestedLocations = new LinkedList<>();
+        for (String word : wordTokens) {
+            if (allLocations.containsKey(word)) {
+                requestedLocations.add(word);
             }
         }
-        return matchedDestinations;
+
+        if (requestedLocations.isEmpty()) {
+            return "You didn't specify where to go.";
+        }
+
+        if (requestedLocations.size() > 1) {
+            return "You can only go to one location at a time.";
+        }
+
+        String targetLocation = requestedLocations.getFirst();
+
+        if (availablePaths.contains(targetLocation)) {
+            Locations newLocation = allLocations.get(targetLocation);
+            if (newLocation != null) {
+                String oldLocName = currentPlayer.currentLocation.getName();
+                Map<String, Players> oldLocPlayers = locationWithPlayers.get(oldLocName);
+                if (oldLocPlayers != null) {
+                    oldLocPlayers.remove(currentPlayer.getName());
+                }
+
+                currentPlayer.currentLocation = newLocation;
+                Map<String, Players> newLocPlayers = locationWithPlayers.computeIfAbsent(
+                        targetLocation, k -> new HashMap<>());
+                newLocPlayers.put(currentPlayer.getName(), currentPlayer);
+
+                return String.format("You've made your way to the desired location: the %s...", targetLocation);
+            }
+        }
+        return String.format("You can't get to the %s from here.", targetLocation);
     }
 
-    public static String getArtefacts (String userCommand, Players currentPlayer){
-        LinkedList<String> wordTokens = ExecuteBasicCommands.tokeniseCommand(userCommand);
-        LinkedList<String> artefactsFiltered = ExecuteBasicCommands.filterArtefacts(wordTokens);
+    public static String getArtefacts(String userCommand, Players currentPlayer) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return getArtefacts(world, userCommand, currentPlayer);
+    }
 
-        if (artefactsFiltered.size() > 1){
-            return "You can only get one item at a time.";
-        } else if(artefactsFiltered.isEmpty()){
-            return "Did not find that artefact to get.";
+    public static String getArtefacts(GameWorld world, String userCommand, Players currentPlayer) {
+        LinkedList<String> wordTokens = tokeniseCommand(userCommand);
+        LinkedList<String> artefactsFiltered = filterArtefacts(world, wordTokens);
+
+        if (artefactsFiltered.size() > 1) {
+            return "You can only pick up one item at a time.";
+        } else if (artefactsFiltered.isEmpty()) {
+            return "Did not find that artefact in current location.";
         }
+
         String artefactToGet = artefactsFiltered.getFirst();
-        Map<String, Artefacts> artefactsHere = GameEntityParser.locationWithArtefacts.get(currentPlayer.currentLocation.getName());
-        if (artefactsHere == null || artefactsHere.isEmpty() || !artefactsHere.containsKey(artefactToGet)){
-            return String.format("There is no %s here to take", artefactToGet);
-        }
-        Artefacts artefact = artefactsHere.remove(artefactToGet);
-        currentPlayer.playerInventory.put(artefactToGet, artefact);
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
 
-        return String.format("You picked up the %s ", artefactToGet);
+        Map<String, Artefacts> artefactsMap = locationWithArtefacts.get(currentPlayer.currentLocation.getName());
+
+        if (artefactsMap != null && artefactsMap.containsKey(artefactToGet)) {
+            Artefacts artefact = artefactsMap.remove(artefactToGet);
+            if (artefact != null) {
+                currentPlayer.playerInventory.put(artefactToGet, artefact);
+                return String.format("You picked up a %s", artefactToGet);
+            }
+        }
+        return "Artefact is not in current location";
     }
 
+    public static String dropArtefact(String userCommand, Players currentPlayer) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return dropArtefact(world, userCommand, currentPlayer);
+    }
 
-    public static String dropArtefact (String userCommand, Players currentPlayer){
-        LinkedList<String> wordTokens = ExecuteBasicCommands.tokeniseCommand(userCommand);
-        LinkedList<String> artefactsFiltered = ExecuteBasicCommands.filterArtefacts(wordTokens);
+    public static String dropArtefact(GameWorld world, String userCommand, Players currentPlayer) {
+        LinkedList<String> wordTokens = tokeniseCommand(userCommand);
+        LinkedList<String> artefactsFiltered = filterArtefacts(world, wordTokens);
 
-        if (artefactsFiltered.size() > 1){
+        if (artefactsFiltered.size() > 1) {
             return "You can only drop one item at a time.";
-        } else if (artefactsFiltered.isEmpty()){
+        } else if (artefactsFiltered.isEmpty()) {
             return "Did not find that artefact to drop.";
         }
 
         String artefactToDrop = artefactsFiltered.getFirst();
         Artefacts artefactInInventory = currentPlayer.playerInventory.remove(artefactToDrop);
 
-        if (artefactInInventory == null){
+        if (artefactInInventory == null) {
             return String.format("You don't have the %s", artefactToDrop);
         }
 
-        Map<String, Artefacts> artefactsMap = GameEntityParser.locationWithArtefacts.get(currentPlayer.currentLocation.getName());
-        currentPlayer.playerInventory.remove(artefactToDrop);
-        if (artefactsMap == null){
-            artefactsMap = new HashMap<>();
-            GameEntityParser.locationWithArtefacts.put(currentPlayer.currentLocation.getName(), artefactsMap);
-        }
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
+
+        Map<String, Artefacts> artefactsMap = locationWithArtefacts.computeIfAbsent(
+                currentPlayer.currentLocation.getName(), k -> new HashMap<>());
         artefactsMap.put(artefactToDrop, artefactInInventory);
         return String.format("You dropped the %s", artefactToDrop);
     }
 
-    public static LinkedList<String> filterArtefacts (LinkedList<String> allWords){
-        Set<String> artefactNames = GameEntityParser.artefactName;
+    public static LinkedList<String> filterArtefacts(LinkedList<String> allWords) {
+        return filterArtefacts(null, allWords);
+    }
+
+    public static LinkedList<String> filterArtefacts(GameWorld world, LinkedList<String> allWords) {
+        Set<String> artefactNames = (world != null)
+                ? world.getArtefactNames()
+                : GameEntityParser.artefactName;
         LinkedList<String> artefactInCommand = new LinkedList<>();
 
-        for(String word : allWords){
-            if(artefactNames.contains(word)){
+        for (String word : allWords) {
+            if (artefactNames.contains(word)) {
                 artefactInCommand.add(word);
             }
         }
         return artefactInCommand;
     }
 
-    private static boolean detectAllEntitiesInCommand (String userCommand){
-        LinkedList<String> tokens = ExecuteBasicCommands.tokeniseCommand(userCommand);
+    private static boolean detectAllEntitiesInCommand(GameWorld world, String userCommand) {
+        LinkedList<String> tokens = tokeniseCommand(userCommand);
+        Map<String, GameEntity> allEntities = (world != null)
+                ? world.getAllEntities()
+                : GameEntityParser.allEntities;
 
-        Set<String> allEntities = new HashSet<>();
-        if (GameEntityParser.allEntities != null) {
-            allEntities.addAll(GameEntityParser.allEntities.keySet());
-        }
-
-        for (String token : tokens) {
-            if (allEntities.contains(token)) {
-                return true;
+        if (allEntities != null) {
+            for (String token : tokens) {
+                if (allEntities.containsKey(token)) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    public static LinkedList<String> tokeniseCommand (String userCommand) {
+    public static LinkedList<String> tokeniseCommand(String userCommand) {
         LinkedList<String> parts = new LinkedList<>();
         int start = 0;
         for (int i = 0; i < userCommand.length(); i++) {

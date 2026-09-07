@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stag-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: stagdb
+      POSTGRES_USER: staguser
+      POSTGRES_PASSWORD: stagpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U staguser -d stagdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  game-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stag-game-server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stagdb
+      SPRING_DATASOURCE_USERNAME: staguser
+      SPRING_DATASOURCE_PASSWORD: stagpassword
+      SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
+      SPRING_JPA_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      STAG_CONFIG_ENTITIES_PATH: config/extended-entities.dot
+      STAG_CONFIG_ACTIONS_PATH: config/extended-actions.xml
+
+volumes:
+  postgres-data:

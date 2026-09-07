@@ -1,88 +1,105 @@
 package edu.uob;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-
+import java.util.*;
 
 public class ExecuteExtendedCommands {
     public static List<GameActionNode> validExtended = new LinkedList<>();
 
     public static String executeExtendedCommand(String playerInput, Players currentPlayer) {
+        GameWorld world = (currentPlayer != null && currentPlayer.getGameWorld() != null)
+                ? currentPlayer.getGameWorld()
+                : null;
+        return executeExtendedCommand(world, playerInput, currentPlayer);
+    }
+
+    public static String executeExtendedCommand(GameWorld world, String playerInput, Players currentPlayer) {
         String subjectErrorMessage = null;
-        //List<GameActionNode> validExtended = new LinkedList<>();
-        validExtended.clear();
-        for (GameActionNode action : GameActionParser.XMLList) {
+        List<GameActionNode> actionList = (world != null) ? world.getActions() : GameActionParser.XMLList;
+        Map<String, GameEntity> allEntities = (world != null) ? world.getAllEntities() : GameEntityParser.allEntities;
+
+        List<GameActionNode> localValidExtended = new LinkedList<>();
+
+        for (GameActionNode action : actionList) {
             if (action.matchesKeyphrase(playerInput)) {
-                if (!inputContainsSubject(playerInput, action.getSubjects(), currentPlayer)) {
+                if (!inputContainsSubject(world, playerInput, action.getSubjects(), currentPlayer)) {
                     subjectErrorMessage = "You need to specify what you're interacting with";
                     continue;
                 }
-                if (!subjectAvailable(action, currentPlayer)) {
-                    subjectErrorMessage = ExecuteExtendedCommands.subjectAvailabilityMessage(action, currentPlayer);
+                if (!subjectAvailable(world, action, currentPlayer)) {
+                    subjectErrorMessage = subjectAvailabilityMessage(world, action, currentPlayer);
                     continue;
                 }
-                if (!consumedEntitiesExist(action, currentPlayer)) {
+                if (!consumedEntitiesExist(world, action, currentPlayer)) {
                     // Special case: allow unlocking/opening trapdoor to create cellar path even if key not yet obtained
                     if (action.getKeyphrases().contains("open") || action.getKeyphrases().contains("unlock")) {
-                        validExtended.add(action);
+                        localValidExtended.add(action);
                         continue;
                     }
-                    subjectErrorMessage = ExecuteExtendedCommands.missingConsumedEntityMessage(action, currentPlayer);
+                    subjectErrorMessage = missingConsumedEntityMessage(world, action, currentPlayer);
                     continue;
                 }
-                validExtended.add(action);
+                localValidExtended.add(action);
             }
         }
-        if (validExtended.size() == 1) {
-            GameActionNode action = validExtended.get(0);
 
-            ExecuteExtendedCommands.consumeEntities(action, currentPlayer);
-            ExecuteExtendedCommands.produceEntities(action, currentPlayer);
+        validExtended = localValidExtended;
+
+        if (localValidExtended.size() == 1) {
+            GameActionNode action = localValidExtended.get(0);
+
+            consumeEntities(world, action, currentPlayer);
+            produceEntities(world, action, currentPlayer);
             for (String producedEntityName : action.getProduced()) {
-                GameEntity locationEntity = GameEntityParser.allEntities.get(producedEntityName.toLowerCase());
+                GameEntity locationEntity = allEntities.get(producedEntityName.toLowerCase());
                 if (locationEntity instanceof Locations) {
                     String currentLoc = currentPlayer.currentLocation.getName();
-                    ExecuteExtendedCommands.addPathToLocation(currentLoc, producedEntityName.toLowerCase());
+                    addPathToLocation(world, currentLoc, producedEntityName.toLowerCase());
                 }
             }
-            // Return narration augmented with the original input to ensure key words appear for tests
             return action.narration() + " - " + playerInput;
-        } else if (validExtended.size() > 1) {
+        } else if (localValidExtended.size() > 1) {
             return "Make up your mind -  Multiple extended commands.";
         }
 
-        if (subjectErrorMessage != null){
+        if (subjectErrorMessage != null) {
             return subjectErrorMessage + " - " + playerInput;
         }
-        // Fall back to echoing the input so the response remains meaningful to the player/tests
         return playerInput;
     }
 
     public static boolean subjectAvailable(GameActionNode action, Players currentPlayer) {
+        return subjectAvailable(null, action, currentPlayer);
+    }
+
+    public static boolean subjectAvailable(GameWorld world, GameActionNode action, Players currentPlayer) {
         for (String subject : action.getSubjects()) {
-            if (!action.getConsumed().contains(subject) && !consumableExistsInContext(subject, currentPlayer)) {
+            if (!action.getConsumed().contains(subject) && !consumableExistsInContext(world, subject, currentPlayer)) {
                 return false;
             }
         }
         return true;
     }
 
-    private static String subjectAvailabilityMessage(GameActionNode action, Players currentPlayer) {
+    public static String subjectAvailabilityMessage(GameActionNode action, Players currentPlayer) {
+        return subjectAvailabilityMessage(null, action, currentPlayer);
+    }
+
+    public static String subjectAvailabilityMessage(GameWorld world, GameActionNode action, Players currentPlayer) {
         for (String subject : action.getSubjects()) {
-            if (!action.getConsumed().contains(subject) && !consumableExistsInContext(subject, currentPlayer)) {
+            if (!action.getConsumed().contains(subject) && !consumableExistsInContext(world, subject, currentPlayer)) {
                 return String.format("Missing required subject: %s", subject);
             }
         }
         return "Subject is available";
     }
 
-    private static String missingConsumedEntityMessage(GameActionNode action,  Players currentPlayer) {
+    public static String missingConsumedEntityMessage(GameActionNode action, Players currentPlayer) {
+        return missingConsumedEntityMessage(null, action, currentPlayer);
+    }
+
+    public static String missingConsumedEntityMessage(GameWorld world, GameActionNode action, Players currentPlayer) {
         for (String entity : action.getConsumed()) {
-            if (!consumableExistsInContext(entity, currentPlayer)) {
+            if (!consumableExistsInContext(world, entity, currentPlayer)) {
                 return String.format("You can't do that right now - missing subject (to consume): %s", entity);
             }
         }
@@ -90,22 +107,45 @@ public class ExecuteExtendedCommands {
     }
 
     public static boolean consumedEntitiesExist(GameActionNode action, Players currentPlayer) {
+        return consumedEntitiesExist(null, action, currentPlayer);
+    }
+
+    public static boolean consumedEntitiesExist(GameWorld world, GameActionNode action, Players currentPlayer) {
         for (String entity : action.getConsumed()) {
-            if (!entity.equals("health") && !consumableExistsInContext(entity, currentPlayer)) {
+            if (!entity.equals("health") && !consumableExistsInContext(world, entity, currentPlayer)) {
                 return false;
             }
         }
         return true;
     }
 
-    private static boolean consumableExistsInContext(String entityName, Players currentPlayer) {
-        if (currentPlayer.playerInventory.containsKey(entityName)) {
+    public static boolean consumableExistsInContext(String entityName, Players currentPlayer) {
+        return consumableExistsInContext(null, entityName, currentPlayer);
+    }
+
+    public static boolean consumableExistsInContext(GameWorld world, String entityName, Players currentPlayer) {
+        if (currentPlayer.playerInventory != null && currentPlayer.playerInventory.containsKey(entityName)) {
             return true;
         }
         String currentLocation = currentPlayer.currentLocation.getName();
-        Map<String, Artefacts> artefactsHere = GameEntityParser.locationWithArtefacts.get(currentLocation);
-        Map<String, Furnitures> furnitureHere = GameEntityParser.locationWithFurnitures.get(currentLocation);
-        Map<String, Characters> charactersHere = GameEntityParser.locationWithCharacters.get(currentLocation);
+
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
+        Map<String, Map<String, Furnitures>> locationWithFurnitures = (world != null)
+                ? world.getLocationWithFurnitures()
+                : GameEntityParser.locationWithFurnitures;
+        Map<String, Map<String, Characters>> locationWithCharacters = (world != null)
+                ? world.getLocationWithCharacters()
+                : GameEntityParser.locationWithCharacters;
+        Map<String, LinkedList<String>> locationPaths = (world != null)
+                ? world.getLocationPaths()
+                : GameEntityParser.locationPaths;
+
+        Map<String, Artefacts> artefactsHere = locationWithArtefacts.get(currentLocation);
+        Map<String, Furnitures> furnitureHere = locationWithFurnitures.get(currentLocation);
+        Map<String, Characters> charactersHere = locationWithCharacters.get(currentLocation);
+
         if (artefactsHere != null && artefactsHere.containsKey(entityName)) {
             return true;
         }
@@ -115,58 +155,95 @@ public class ExecuteExtendedCommands {
         if (charactersHere != null && charactersHere.containsKey(entityName)) {
             return true;
         }
-        if (GameEntityParser.locationPaths.get(currentLocation) != null && GameEntityParser.locationPaths.get(currentLocation).contains(entityName)) {
+        if (locationPaths.get(currentLocation) != null && locationPaths.get(currentLocation).contains(entityName)) {
             return true;
         }
         return false;
     }
 
-    private static void consumeEntities(GameActionNode action, Players currentPlayer) {
+    public static void consumeEntities(GameActionNode action, Players currentPlayer) {
+        consumeEntities(null, action, currentPlayer);
+    }
+
+    public static void consumeEntities(GameWorld world, GameActionNode action, Players currentPlayer) {
         for (String entityName : action.getConsumed()) {
             if (entityName.equals("health")) {
                 currentPlayer.playerHealth--;
-                if(currentPlayer.playerHealth <= 0){
-                    ExecuteExtendedCommands.handlePlayerDeath(currentPlayer);
+                if (currentPlayer.playerHealth <= 0) {
+                    handlePlayerDeath(world, currentPlayer);
                 }
             } else {
-                ExecuteExtendedCommands.consumeAndStoreEntity(entityName, currentPlayer);
+                consumeAndStoreEntity(world, entityName, currentPlayer);
             }
         }
     }
 
-    private static String handlePlayerDeath(Players currentPlayer){
+    public static String handlePlayerDeath(Players currentPlayer) {
+        return handlePlayerDeath(null, currentPlayer);
+    }
+
+    public static String handlePlayerDeath(GameWorld world, Players currentPlayer) {
         StringBuilder status = new StringBuilder();
         String currentLocation = currentPlayer.currentLocation.getName();
-        Map<String, Artefacts> locationArtefacts = GameEntityParser.locationWithArtefacts.get(currentLocation);
 
-        if (locationArtefacts == null){
-            locationArtefacts = new HashMap<>();
-            GameEntityParser.locationWithArtefacts.put(currentLocation, locationArtefacts);
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
+        Locations startingLocation = (world != null)
+                ? world.getStartingLocation()
+                : GameEntityParser.startingLocation;
+
+        Map<String, Artefacts> locationArtefacts = locationWithArtefacts.computeIfAbsent(
+                currentLocation, k -> new HashMap<>());
+
+        if (currentPlayer.playerInventory != null) {
+            locationArtefacts.putAll(currentPlayer.playerInventory);
+            currentPlayer.playerInventory.clear();
         }
-        locationArtefacts.putAll(currentPlayer.playerInventory);
-        currentPlayer.playerInventory.clear();
         currentPlayer.playerHealth = 3;
-        currentPlayer.currentLocation = GameEntityParser.startingLocation;
+        currentPlayer.currentLocation = startingLocation;
 
         return status.append("You have died and respawned at the cabin").toString();
     }
 
     public static void consumeAndStoreEntity(String entityName, Players currentPlayer) {
-        Artefacts artefact = currentPlayer.playerInventory.remove(entityName);
+        consumeAndStoreEntity(null, entityName, currentPlayer);
+    }
+
+    public static void consumeAndStoreEntity(GameWorld world, String entityName, Players currentPlayer) {
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
+        Map<String, Map<String, Furnitures>> locationWithFurnitures = (world != null)
+                ? world.getLocationWithFurnitures()
+                : GameEntityParser.locationWithFurnitures;
+        Map<String, Map<String, Characters>> locationWithCharacters = (world != null)
+                ? world.getLocationWithCharacters()
+                : GameEntityParser.locationWithCharacters;
+        Map<String, Locations> allLocations = (world != null)
+                ? world.getAllLocations()
+                : GameEntityParser.allLocations;
+        Map<String, LinkedList<String>> locationPaths = (world != null)
+                ? world.getLocationPaths()
+                : GameEntityParser.locationPaths;
+
+        Artefacts artefact = (currentPlayer.playerInventory != null)
+                ? currentPlayer.playerInventory.remove(entityName)
+                : null;
         if (artefact != null) {
-            Map<String, Artefacts> storeroom = getOrCreateStoreroomMap(GameEntityParser.locationWithArtefacts);
+            Map<String, Artefacts> storeroom = getOrCreateStoreroomMap(locationWithArtefacts);
             storeroom.put(entityName, artefact);
             return;
         }
-        Map<String, Locations> allLocations = GameEntityParser.allLocations;
-        Map<String, Artefacts> artefactsHere = GameEntityParser.locationWithArtefacts.get(currentPlayer.currentLocation.getName());
-        Map<String, Furnitures> furnituresHere = GameEntityParser.locationWithFurnitures.get(currentPlayer.currentLocation.getName());
-        Map<String, Characters> charactersHere = GameEntityParser.locationWithCharacters.get(currentPlayer.currentLocation.getName());
+
+        Map<String, Artefacts> artefactsHere = locationWithArtefacts.get(currentPlayer.currentLocation.getName());
+        Map<String, Furnitures> furnituresHere = locationWithFurnitures.get(currentPlayer.currentLocation.getName());
+        Map<String, Characters> charactersHere = locationWithCharacters.get(currentPlayer.currentLocation.getName());
 
         if (artefactsHere != null && artefactsHere.containsKey(entityName)) {
             artefact = artefactsHere.remove(entityName);
             if (artefact != null) {
-                Map<String, Artefacts> storeroom = getOrCreateStoreroomMap(GameEntityParser.locationWithArtefacts);
+                Map<String, Artefacts> storeroom = getOrCreateStoreroomMap(locationWithArtefacts);
                 storeroom.put(entityName, artefact);
                 return;
             }
@@ -174,7 +251,7 @@ public class ExecuteExtendedCommands {
         if (furnituresHere != null && furnituresHere.containsKey(entityName)) {
             Furnitures furniture = furnituresHere.remove(entityName);
             if (furniture != null) {
-                Map<String, Furnitures> storeroom = getOrCreateStoreroomMap(GameEntityParser.locationWithFurnitures);
+                Map<String, Furnitures> storeroom = getOrCreateStoreroomMap(locationWithFurnitures);
                 storeroom.put(entityName, furniture);
                 return;
             }
@@ -182,92 +259,116 @@ public class ExecuteExtendedCommands {
         if (charactersHere != null && charactersHere.containsKey(entityName)) {
             Characters character = charactersHere.remove(entityName);
             if (character != null) {
-                Map<String, Characters> storeroom = getOrCreateStoreroomMap(GameEntityParser.locationWithCharacters);
+                Map<String, Characters> storeroom = getOrCreateStoreroomMap(locationWithCharacters);
                 storeroom.put(entityName, character);
                 return;
             }
         }
-        if (allLocations.containsKey(entityName)) {
+        if (allLocations != null && allLocations.containsKey(entityName)) {
             String currentLocation = currentPlayer.currentLocation.getName();
-            LinkedList<String> pathsFromCurrent = GameEntityParser.locationPaths.get(currentLocation);
+            LinkedList<String> pathsFromCurrent = locationPaths.get(currentLocation);
             if (pathsFromCurrent != null) {
                 pathsFromCurrent.remove(entityName);
+            }
+            LinkedList<String> pathsFromTarget = locationPaths.get(entityName);
+            if (pathsFromTarget != null) {
+                pathsFromTarget.remove(currentLocation);
             }
         }
     }
 
-    private static void produceEntities(GameActionNode actionNode, Players currentPlayer) {
-        for (String entityName : actionNode.getProduced()) {
+    public static void produceEntities(GameActionNode action, Players currentPlayer) {
+        produceEntities(null, action, currentPlayer);
+    }
+
+    public static void produceEntities(GameWorld world, GameActionNode action, Players currentPlayer) {
+        for (String entityName : action.getProduced()) {
             if (entityName.equals("health")) {
                 if (currentPlayer.playerHealth < 3) {
                     currentPlayer.playerHealth++;
                 }
             } else {
-                ExecuteExtendedCommands.retrieveAndPlaceEntity(entityName, currentPlayer.currentLocation.getName());
+                retrieveAndPlaceEntity(world, entityName, currentPlayer.currentLocation.getName());
             }
         }
     }
 
     public static void retrieveAndPlaceEntity(String entityName, String targetLocationName) {
-        for (Map.Entry<String, Map<String, Artefacts>> entry : GameEntityParser.locationWithArtefacts.entrySet()){
-            Map<String, Artefacts> artefacts = entry.getValue();
-            if (artefacts != null && artefacts.containsKey(entityName)) {
-                Artefacts artefact = artefacts.remove(entityName);
+        retrieveAndPlaceEntity(null, entityName, targetLocationName);
+    }
 
-                Map<String, Artefacts> targetLocationArtefacts = GameEntityParser.locationWithArtefacts.get(targetLocationName);
-                if (targetLocationArtefacts == null){
-                    targetLocationArtefacts = new HashMap<>();
-                    GameEntityParser.locationWithArtefacts.put(targetLocationName, targetLocationArtefacts);
-                }
+    public static void retrieveAndPlaceEntity(GameWorld world, String entityName, String targetLocationName) {
+        Map<String, Map<String, Artefacts>> locationWithArtefacts = (world != null)
+                ? world.getLocationWithArtefacts()
+                : GameEntityParser.locationWithArtefacts;
+        Map<String, Map<String, Furnitures>> locationWithFurnitures = (world != null)
+                ? world.getLocationWithFurnitures()
+                : GameEntityParser.locationWithFurnitures;
+        Map<String, Map<String, Characters>> locationWithCharacters = (world != null)
+                ? world.getLocationWithCharacters()
+                : GameEntityParser.locationWithCharacters;
+
+        Map<String, Artefacts> storeroomArtefacts = locationWithArtefacts.get("storeroom");
+        if (storeroomArtefacts != null && storeroomArtefacts.containsKey(entityName)) {
+            Artefacts artefact = storeroomArtefacts.remove(entityName);
+            if (artefact != null) {
+                Map<String, Artefacts> targetLocationArtefacts = locationWithArtefacts.computeIfAbsent(
+                        targetLocationName, k -> new HashMap<>());
                 targetLocationArtefacts.put(entityName, artefact);
                 return;
             }
         }
-        for (Map.Entry<String, Map<String, Furnitures>> entry : GameEntityParser.locationWithFurnitures.entrySet()){
-            Map<String, Furnitures> furnitures = entry.getValue();
-            if (furnitures != null && furnitures.containsKey(entityName)) {
-                Furnitures furniture = furnitures.remove(entityName);
 
-                Map<String, Furnitures> targetLocationFurnitures = GameEntityParser.locationWithFurnitures.get(targetLocationName);
-                if (targetLocationFurnitures == null){
-                    targetLocationFurnitures = new HashMap<>();
-                    GameEntityParser.locationWithFurnitures.put(targetLocationName, targetLocationFurnitures);
-                }
+        Map<String, Furnitures> storeroomFurnitures = locationWithFurnitures.get("storeroom");
+        if (storeroomFurnitures != null && storeroomFurnitures.containsKey(entityName)) {
+            Furnitures furniture = storeroomFurnitures.remove(entityName);
+            if (furniture != null) {
+                Map<String, Furnitures> targetLocationFurnitures = locationWithFurnitures.computeIfAbsent(
+                        targetLocationName, k -> new HashMap<>());
                 targetLocationFurnitures.put(entityName, furniture);
                 return;
             }
         }
-        for (Map.Entry<String, Map<String, Characters>> entry : GameEntityParser.locationWithCharacters.entrySet()) {
-            Map<String, Characters> characters = entry.getValue();
-            if (characters != null && characters.containsKey(entityName)) {
-                Characters character = characters.remove(entityName);
 
-                Map<String, Characters> targetLocationChars = GameEntityParser.locationWithCharacters.get(targetLocationName);
-                if (targetLocationChars == null){
-                    targetLocationChars = new HashMap<>();
-                    GameEntityParser.locationWithCharacters.put(targetLocationName, targetLocationChars);
-                }
+        Map<String, Characters> storeroomCharacters = locationWithCharacters.get("storeroom");
+        if (storeroomCharacters != null && storeroomCharacters.containsKey(entityName)) {
+            Characters character = storeroomCharacters.remove(entityName);
+            if (character != null) {
+                Map<String, Characters> targetLocationChars = locationWithCharacters.computeIfAbsent(
+                        targetLocationName, k -> new HashMap<>());
                 targetLocationChars.put(entityName, character);
                 return;
             }
         }
     }
 
-    private static void addPathToLocation(String fromLocation, String toLocation){
-        LinkedList<String> pathsFrom = GameEntityParser.locationPaths.get(fromLocation);
-        if (pathsFrom == null) {
-            pathsFrom = new LinkedList<>();
-            GameEntityParser.locationPaths.put(fromLocation, pathsFrom);
-        }
+    public static void addPathToLocation(String fromLocation, String toLocation) {
+        addPathToLocation(null, fromLocation, toLocation);
+    }
+
+    public static void addPathToLocation(GameWorld world, String fromLocation, String toLocation) {
+        Map<String, LinkedList<String>> locationPaths = (world != null)
+                ? world.getLocationPaths()
+                : GameEntityParser.locationPaths;
+
+        LinkedList<String> pathsFrom = locationPaths.computeIfAbsent(fromLocation, k -> new LinkedList<>());
         if (!pathsFrom.contains(toLocation)) {
             pathsFrom.add(toLocation);
         }
     }
 
-    public static boolean inputContainsSubject (String playerInput, Iterable<String> subjects, Players contextPlayer){
+    public static boolean inputContainsSubject(String playerInput, Iterable<String> subjects, Players contextPlayer) {
+        return inputContainsSubject(null, playerInput, subjects, contextPlayer);
+    }
+
+    public static boolean inputContainsSubject(GameWorld world, String playerInput, Iterable<String> subjects, Players contextPlayer) {
         String lowerInput = playerInput.toLowerCase();
 
-        // Build a set of explicitly mentioned entities in the input (by token)
+        Map<String, GameEntity> allEntities = (world != null) ? world.getAllEntities() : GameEntityParser.allEntities;
+        Set<String> artefactNames = (world != null) ? world.getArtefactNames() : GameEntityParser.artefactName;
+        Set<String> furnitureNames = (world != null) ? world.getFurnitureNames() : GameEntityParser.furnitureName;
+        Set<String> characterNames = (world != null) ? world.getCharacterNames() : GameEntityParser.characterName;
+
         Set<String> explicitEntities = new HashSet<>();
         int i = 0;
         while (i < lowerInput.length()) {
@@ -276,33 +377,29 @@ public class ExecuteExtendedCommands {
             while (i < lowerInput.length() && Character.isLetterOrDigit(lowerInput.charAt(i))) i++;
             if (start < i) {
                 String word = lowerInput.substring(start, i);
-                if (GameEntityParser.allEntities.containsKey(word)) {
+                if (allEntities != null && allEntities.containsKey(word)) {
                     explicitEntities.add(word);
                 }
             }
         }
 
-        // Create a set of expected subjects for quick lookup
         Set<String> subjectSet = new HashSet<>();
         for (String s : subjects) subjectSet.add(s.toLowerCase());
 
-        // If the user explicitly mentioned any entity, only accept if at least one of them is a required subject
         if (!explicitEntities.isEmpty()) {
             for (String ent : explicitEntities) {
                 if (subjectSet.contains(ent)) {
                     return true;
                 }
             }
-            // Explicit entity mentioned but none are valid subjects -> reject
             return false;
         }
 
-        // No explicit entity mentioned: allow contextual presence of a required subject in the current location
         for (String subj : subjectSet) {
-            if (GameEntityParser.artefactName.contains(subj) ||
-                GameEntityParser.furnitureName.contains(subj) ||
-                GameEntityParser.characterName.contains(subj)) {
-                if (consumableExistsInContext(subj, contextPlayer)) {
+            if (artefactNames.contains(subj) ||
+                    furnitureNames.contains(subj) ||
+                    characterNames.contains(subj)) {
+                if (consumableExistsInContext(world, subj, contextPlayer)) {
                     return true;
                 }
             }
@@ -310,13 +407,7 @@ public class ExecuteExtendedCommands {
         return false;
     }
 
-    private static <T> Map<String, T> getOrCreateStoreroomMap(Map<String, Map<String, T>>locationMap){
-        Map<String, T> storeroom = locationMap.get("storeroom");
-        if (storeroom == null){
-            storeroom = new HashMap<>();
-            locationMap.put("storeroom", storeroom);
-        }
-        return storeroom;
+    private static <T> Map<String, T> getOrCreateStoreroomMap(Map<String, Map<String, T>> locationMap) {
+        return locationMap.computeIfAbsent("storeroom", k -> new HashMap<>());
     }
-
 }

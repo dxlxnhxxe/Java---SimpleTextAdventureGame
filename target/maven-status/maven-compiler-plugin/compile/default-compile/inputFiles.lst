@@ -1,14 +1,50 @@
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Locations.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameActionNode.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/CommandTokeniser.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Artefacts.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameActionParser.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Players.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameClient.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Furnitures.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Characters.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameEntity.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameEntityParser.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameServer.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/ExecuteExtendedCommands.java
-/Users/dylanhaye/Coding/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/ExecuteBasicCommands.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/CreateGameRequest.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/security/JwtAuthenticationFilter.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/CommandRequest.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/websocket/GameEvent.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/websocket/GameWebSocketController.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/service/GameEngineService.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/CommandResponse.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/config/WebSocketConfig.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/config/WebConfig.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/service/GamePersistenceService.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/repository/GameSessionRepository.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameWorld.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Artefacts.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/controller/AuthController.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/config/SecurityConfig.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/GameSessionResponse.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/repository/UserRepository.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/entity/ArtefactPlacementEntity.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameClient.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Furnitures.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/entity/UserEntity.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/JoinGameRequest.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/SaveGameResponse.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameActionNode.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/AuthRequest.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameEntity.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/entity/PlayerStateEntity.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Locations.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameActionParser.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/entity/LocationStateEntity.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/SaveGameRequest.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameEntityParser.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/AuthResponse.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/entity/InventoryItemEntity.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/ExecuteExtendedCommands.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/ExecuteBasicCommands.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/JoinGameResponse.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/StagApplication.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/controller/GameSessionController.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/service/UserService.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/controller/CommandController.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/security/JwtTokenProvider.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/dto/UserProfileResponse.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameWorldTemplate.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/CommandTokeniser.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Characters.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/GameServer.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/Players.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/persistence/entity/GameSessionEntity.java
+/Users/dylanhaye/Coding/Academic Projects/UoB/JOOPc/STAG/resources/cw-stag/src/main/java/edu/uob/websocket/GameEventPublisher.java
