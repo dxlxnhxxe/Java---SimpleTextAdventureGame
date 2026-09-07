@@ -30,7 +30,6 @@ final class EntitiesFileTests {
           ArrayList<Graph> locations = sections.get(0).getSubgraphs();
           Graph firstLocation = locations.get(0);
           Node locationDetails = firstLocation.getNodes(false).get(0);
-          // Yes, you do need to get the ID twice !
           String locationName = locationDetails.getId().getId();
           assertEquals("cabin", locationName, "First location should have been 'cabin'");
 

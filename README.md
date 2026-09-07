@@ -71,7 +71,7 @@ Visit **http://localhost:8080** to access the web terminal interface.
 
 ---
 
-## 🎮 Gameplay & Commands
+## Gameplay & Commands
 
 ### Canonical Basic Commands
 | Command | Alias | Description |
@@ -101,7 +101,7 @@ The world supports dynamic interactions defined in `config/extended-actions.xml`
 - `POST /api/v1/auth/login` — Login and receive JWT bearer token: `{ "username": "alice", "password": "password123" }`
 - `GET /api/v1/auth/me` — Retrieve current authenticated user profile (`Authorization: Bearer <token>`)
 
-### 🕹️ Game Sessions (`/api/v1/games`)
+### Game Sessions (`/api/v1/games`)
 - `POST /api/v1/games` — Create a new game session: `{ "gameName": "The Old Manor", "template": "extended" }`
 - `GET /api/v1/games` — List all active in-memory game sessions
 - `GET /api/v1/games/{id}` — Get status and connected players for a game session
